@@ -1,0 +1,86 @@
+import {
+  Event as ActivitiesIcon,
+  People as LeadsIcon,
+  Contacts as ContactsIcon,
+  Settings as ProjectSetupIcon,
+  Build as SetupIcon,
+  List as ListIcon,
+  Add as AddIcon,
+  Business as BusinessIcon,
+  LocationCity as CityIcon,
+  LocationOn as AreaIcon,
+  Place as LocalityIcon,
+  Domain as OrganisationIcon,
+  Language as WebsitePanelIcon,
+  Phone as VirtualNumberIcon,
+  Flag as CountryIcon,
+  PublicOff as StateIcon,
+  Group as GroupIcon,
+  SupervisedUserCircle as ClientIcon,
+  Store as BrokerIcon,
+  EmojiPeople as DeveloperIcon,
+  AccountTree as ProjectIcon,
+  TrendingUp as TrendingUpIcon,
+  Map as SlabRateIcon,
+  Web as WebsiteCityIcon,
+  TrackChanges as TargetLeadIcon
+} from '@mui/icons-material';
+
+export const menuItems = [
+  {
+    title: 'Activities',
+    icon: <ActivitiesIcon />,
+    subItems: [
+      { title: 'Activities List', path: '/activities', icon: <ListIcon /> },
+      { title: 'Calendar View', path: '/activities/new', icon: <AddIcon /> },
+    ],
+  },
+  {
+    title: 'Leads',
+    icon: <LeadsIcon />,
+    subItems: [
+      { title: 'Residential Leads', path: '/leads', icon: <ListIcon /> },
+      { title: 'Commercial Leads', path: '/leads/new', icon: <AddIcon /> },
+      { title: 'Campaigns', path: '/leads/campaigns', icon: <TrendingUpIcon /> },
+    ],
+  },
+  {
+    title: 'Contacts',
+    icon: <ContactsIcon />,
+    subItems: [
+      { title: 'List Contacts', path: '/contacts', icon: <ListIcon /> },
+      { title: 'Create Contact', path: '/contacts/new', icon: <AddIcon /> },
+      { title: 'Clients', path: '/contacts/clients', icon: <ClientIcon /> },
+      { title: 'Developers', path: '/contacts/developers', icon: <DeveloperIcon /> },
+      { title: 'Brokers', path: '/contacts/brokers', icon: <BrokerIcon /> },
+      { title: 'Target Leads', path: '/contacts/target-leads', icon: <TargetLeadIcon /> },
+      { title: 'Groups', path: '/contacts/groups', icon: <GroupIcon /> },
+    ],
+  },
+  {
+    title: 'Project Setup',
+    icon: <ProjectSetupIcon />,
+    subItems: [
+      { title: 'Projects', path: '/project-setup/projects', icon: <ProjectIcon /> },
+    ],
+  },
+  {
+    title: 'Setup',
+    icon: <SetupIcon />,
+    subItems: [
+      { title: 'Document Centre', path: '/setup/document-centre', icon: <BusinessIcon /> },
+      { title: 'Countries', path: '/setup/countries', icon: <CountryIcon /> },
+      { title: 'States', path: '/setup/states', icon: <StateIcon /> },
+      { title: 'Cities', path: '/setup/cities', icon: <CityIcon /> },
+      { title: 'Areas', path: '/setup/areas', icon: <AreaIcon /> },
+      { title: 'Localities', path: '/setup/localities', icon: <LocalityIcon /> },
+      { title: 'Organisation', path: '/setup/organisation', icon: <OrganisationIcon /> },
+      { title: 'Website Panel', path: '/setup/website-panel', icon: <WebsitePanelIcon /> },
+      { title: 'Virtual Number', path: '/setup/virtual-number', icon: <VirtualNumberIcon /> },
+      { title: 'Website Cities', path: '/setup/website-cities', icon: <WebsiteCityIcon /> },
+      { title: 'Website States', path: '/setup/website-states', icon: <StateIcon /> },
+      { title: 'Website Areas', path: '/setup/website-areas', icon: <AreaIcon /> },
+      { title: 'Slab Rate', path: '/setup/slab-rate', icon: <SlabRateIcon /> },
+    ],
+  },
+];
