@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Box, Typography, Paper, Button, Chip, Stack, Divider, 
-  List, ListItem, ListItemText, IconButton 
+  List, ListItem, ListItemText 
 } from '@mui/material';
 import { Edit, ArrowBack } from '@mui/icons-material';
 import useApi from '../../hooks/useApi';
