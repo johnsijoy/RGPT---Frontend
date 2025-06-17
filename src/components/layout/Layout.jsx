@@ -1,25 +1,32 @@
 import React from 'react';
-import { Box, Toolbar } from '@mui/material';
+import { Box } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 
 const Layout = ({ children }) => {
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '97%' }}>
+      {/* Topbar */}
       <Topbar />
-      <Sidebar />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - 240px)` },
-          ml: { sm: `240px` },
-        }}
-      >
-        <Toolbar />
-        {children || <Outlet />}
+
+      {/* Main body with Sidebar and Content */}
+      <Box sx={{ display: 'flex', flex: 1 }}>
+        {/* Sidebar */}
+        <Sidebar />
+
+        {/* Main content (push down to avoid being under Topbar) */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            mt: '64px', // 👈 This is the key fix
+            width: '100%',
+          }}
+        >
+          {children || <Outlet />}
+        </Box>
       </Box>
     </Box>
   );
