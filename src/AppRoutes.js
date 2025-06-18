@@ -29,6 +29,8 @@ import ProjectSetupForm from './pages/project-setup/ProjectSetupForm';
 import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
+import DocumentCentre from './pages/setup/DocumentCentre';
+import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
 
@@ -91,6 +93,8 @@ const AppRoutes = () => {
             <Route path=":id" element={<SetupDetails />} />
             <Route path="new" element={<SetupForm />} />
             <Route path="edit/:id" element={<SetupForm />} />
+            <Route path="document-centre" element={<DocumentCentre />} />
+            <Route path="countries" element={<Countries />} />
             {/* New States and Cities Pages */}
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
