@@ -29,49 +29,15 @@ import {
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
+
 const countriesData = [
-  {
-    id: '47730966742691691',
-    name: 'Dubai, UAE',
-    code: 'UAE',
-    description: 'Middle Eastern Country',
-  },
-  {
-    id: '452841597447000171',
-    name: 'India',
-    code: 'IN',
-    description: 'South Asian Country',
-  },
-  {
-    id: '23489472378937842',
-    name: 'United States',
-    code: 'US',
-    description: 'North American Country',
-  },
-  {
-    id: '91823478972348912',
-    name: 'Canada',
-    code: 'CA',
-    description: 'Country in North America',
-  },
-  {
-    id: '91238912389128391',
-    name: 'Germany',
-    code: 'DE',
-    description: 'European Country',
-  },
-  {
-    id: '21389472389472389',
-    name: 'Singapore',
-    code: 'SG',
-    description: 'Island Country in Southeast Asia',
-  },
-  {
-    id: '48374982374982374',
-    name: 'Australia',
-    code: 'AU',
-    description: 'Country in Oceania',
-  },
+  { id: '47730966742691691', name: 'Dubai, UAE', code: 'UAE', description: 'Middle Eastern Country' },
+  { id: '452841597447000171', name: 'India', code: 'IN', description: 'South Asian Country' },
+  { id: '23489472378937842', name: 'United States', code: 'US', description: 'North American Country' },
+  { id: '91823478972348912', name: 'Canada', code: 'CA', description: 'Country in North America' },
+  { id: '91238912389128391', name: 'Germany', code: 'DE', description: 'European Country' },
+  { id: '21389472389472389', name: 'Singapore', code: 'SG', description: 'Island Country in Southeast Asia' },
+  { id: '48374982374982374', name: 'Australia', code: 'AU', description: 'Country in Oceania' },
 ];
 
 export default function Countries() {
@@ -135,13 +101,11 @@ export default function Countries() {
             onChange={(e) => setQuery(e.target.value)}
             label="Filter by Country"
           >
-            <MenuItem value="UAE">UAE</MenuItem>
-            <MenuItem value="IN">India</MenuItem>
-            <MenuItem value="US">United States</MenuItem>
-            <MenuItem value="CA">Canada</MenuItem>
-            <MenuItem value="DE">Germany</MenuItem>
-            <MenuItem value="SG">Singapore</MenuItem>
-            <MenuItem value="AU">Australia</MenuItem>
+            {countriesData.map((country) => (
+              <MenuItem key={country.code} value={country.code}>
+                {country.name}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
@@ -181,9 +145,7 @@ export default function Countries() {
               <TableCell padding="checkbox">
                 <Checkbox
                   size="small"
-                  checked={
-                    selectedRows.length === filteredData.length && filteredData.length > 0
-                  }
+                  checked={selectedRows.length === filteredData.length && filteredData.length > 0}
                   onChange={handleSelectAll}
                 />
               </TableCell>
