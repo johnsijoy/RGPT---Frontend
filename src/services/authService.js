@@ -12,7 +12,7 @@ export const authService = {
           name: 'Admin User', 
           email, 
           token: 'mock-token', 
-          avatar: 'https://i.pravatar.cc/150?img=3' 
+          avatar: '' 
         };
       });
     }
