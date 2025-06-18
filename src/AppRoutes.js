@@ -29,6 +29,8 @@ import ProjectSetupForm from './pages/project-setup/ProjectSetupForm';
 import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
+import DocumentCentre from './pages/setup/DocumentCentre';
+import Countries from './pages/setup/Countries';
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -51,7 +53,6 @@ const AppRoutes = () => {
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
           
-          {/* Activities Routes */}
           <Route path="activities">
             <Route index element={<ActivitiesList />} />
             <Route path=":id" element={<ActivityDetails />} />
@@ -59,7 +60,6 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ActivityForm />} />
           </Route>
           
-          {/* Leads Routes */}
           <Route path="leads">
             <Route index element={<LeadsList />} />
             <Route path=":id" element={<LeadDetails />} />
@@ -67,7 +67,6 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<LeadForm />} />
           </Route>
           
-          {/* Contacts Routes */}
           <Route path="contacts">
             <Route index element={<ContactsList />} />
             <Route path=":id" element={<ContactDetails />} />
@@ -75,7 +74,6 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ContactForm />} />
           </Route>
           
-          {/* Project Setup Routes */}
           <Route path="project-setup">
             <Route index element={<ProjectSetupList />} />
             <Route path=":id" element={<ProjectSetupDetails />} />
@@ -83,12 +81,13 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ProjectSetupForm />} />
           </Route>
           
-          {/* Setup Routes */}
           <Route path="setup">
             <Route index element={<SetupList />} />
             <Route path=":id" element={<SetupDetails />} />
             <Route path="new" element={<SetupForm />} />
             <Route path="edit/:id" element={<SetupForm />} />
+            <Route path="document-centre" element={<DocumentCentre />} />
+            <Route path="countries" element={<Countries />} />
           </Route>
         </Route>
       </Route>
