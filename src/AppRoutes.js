@@ -1,9 +1,13 @@
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import Login from './pages/auth/Login';
-import Dashboard from './pages/Dashboard';
-import Layout from './components/layout/Layout';
 import { useAuth } from './context/AuthContext';
+
+// Auth
+import Login from './pages/auth/Login';
+
+// Layout
+import Layout from './components/layout/Layout';
+import Dashboard from './pages/Dashboard';
 
 // Activities
 import ActivitiesList from './pages/activities/ActivitiesList';
@@ -29,6 +33,7 @@ import ProjectSetupForm from './pages/project-setup/ProjectSetupForm';
 import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
+
 import WebsiteAreasDetails from './pages/setup/website-areas/WebsiteAreasDetails';
 import SlabRateDetails from './pages/setup/slab-rate/SlabRateDetails';
 import DocumentCentre from './pages/setup/DocumentCentre';
@@ -62,12 +67,12 @@ const PublicRoute = () => {
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public Route */}
+      {/* Public Routes */}
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<Login />} />
       </Route>
 
-      {/* Private Route */}
+      {/* Private Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
@@ -110,11 +115,14 @@ const AppRoutes = () => {
             <Route path=":id" element={<SetupDetails />} />
             <Route path="new" element={<SetupForm />} />
             <Route path="edit/:id" element={<SetupForm />} />
+
+            {/* Setup Subsections */}
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
             <Route path="slab-rate" element={<SlabRateDetails />} />
             <Route path="document-centre" element={<DocumentCentre />} />
             <Route path="organisation" element={<Organisation />} />
             <Route path="website-panel" element={<WebsitePanel />} />
+            <Route path="virtual-number" element={<VirtualNumber />} />
             <Route path="countries" element={<Countries />} />
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
@@ -133,15 +141,11 @@ const AppRoutes = () => {
               <Route path="edit/:id" element={<WebsiteStatesForm />} />
               <Route path=":id" element={<WebsiteStatesDetails />} />
             </Route>
-
-            <Route path="organisation" element={<Organisation />} />
-            <Route path="website-panel" element={<WebsitePanel />} />
-            <Route path="organisation" element={<Organisation />} />
-            <Route path="website-panel" element={<WebsitePanel />} />
-            <Route path="virtual-number" element={<VirtualNumber />} />
           </Route>
         </Route>
       </Route>
+
+      {/* Catch-all route */}
       <Route
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
