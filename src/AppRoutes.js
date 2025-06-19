@@ -30,6 +30,8 @@ import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
 import DocumentCentre from './pages/setup/DocumentCentre';
+import Organisation from './pages/setup/Organisation';
+import WebsitePanel from './pages/setup/WebsitePanel';
 import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
@@ -43,9 +45,6 @@ import WebsiteCitiesDetails from './pages/setup/websitecities/WebsiteCitiesDetai
 import WebsiteStatesList from './pages/setup/websitestates/WebsiteStatesList';
 import WebsiteStatesForm from './pages/setup/websitestates/WebsiteStatesForm';
 import WebsiteStatesDetails from './pages/setup/websitestates/WebsiteStatesDetails';
-
-
-
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -68,11 +67,7 @@ const AppRoutes = () => {
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
 
-<<<<<<< Updated upstream
-          {/* Activities Routes */}
-=======
           {/* Activities */}
->>>>>>> Stashed changes
           <Route path="activities">
             <Route index element={<ActivitiesList />} />
             <Route path=":id" element={<ActivityDetails />} />
@@ -80,11 +75,7 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ActivityForm />} />
           </Route>
 
-<<<<<<< Updated upstream
-          {/* Leads Routes */}
-=======
           {/* Leads */}
->>>>>>> Stashed changes
           <Route path="leads">
             <Route index element={<LeadsList />} />
             <Route path=":id" element={<LeadDetails />} />
@@ -92,11 +83,7 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<LeadForm />} />
           </Route>
 
-<<<<<<< Updated upstream
-          {/* Contacts Routes */}
-=======
           {/* Contacts */}
->>>>>>> Stashed changes
           <Route path="contacts">
             <Route index element={<ContactsList />} />
             <Route path=":id" element={<ContactDetails />} />
@@ -104,11 +91,7 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ContactForm />} />
           </Route>
 
-<<<<<<< Updated upstream
-          {/* Project Setup Routes */}
-=======
           {/* Project Setup */}
->>>>>>> Stashed changes
           <Route path="project-setup">
             <Route index element={<ProjectSetupList />} />
             <Route path=":id" element={<ProjectSetupDetails />} />
@@ -116,23 +99,18 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ProjectSetupForm />} />
           </Route>
 
-<<<<<<< Updated upstream
-          {/* Setup Routes */}
-=======
           {/* Setup */}
->>>>>>> Stashed changes
           <Route path="setup">
             <Route index element={<SetupList />} />
             <Route path=":id" element={<SetupDetails />} />
             <Route path="new" element={<SetupForm />} />
             <Route path="edit/:id" element={<SetupForm />} />
-<<<<<<< Updated upstream
             <Route path="document-centre" element={<DocumentCentre />} />
+            <Route path="organisation" element={<Organisation />} />
+            <Route path="website-panel" element={<WebsitePanel />} />
             <Route path="countries" element={<Countries />} />
-            {/* New States and Cities Pages */}
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
-=======
 
             {/* Website Cities */}
             <Route path="website-cities">
@@ -148,7 +126,6 @@ const AppRoutes = () => {
               <Route path="edit/:id" element={<WebsiteStatesForm />} />
               <Route path=":id" element={<WebsiteStatesDetails />} />
             </Route>
->>>>>>> Stashed changes
           </Route>
         </Route>
       </Route>
