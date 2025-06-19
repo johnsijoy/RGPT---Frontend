@@ -34,6 +34,7 @@ import SlabRateDetails from './pages/setup/slab-rate/SlabRateDetails';
 import DocumentCentre from './pages/setup/DocumentCentre';
 import Organisation from './pages/setup/Organisation';
 import WebsitePanel from './pages/setup/WebsitePanel';
+import VirtualNumber from './pages/setup/VirtualNumber';
 import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
@@ -135,6 +136,9 @@ const AppRoutes = () => {
 
             <Route path="organisation" element={<Organisation />} />
             <Route path="website-panel" element={<WebsitePanel />} />
+            <Route path="organisation" element={<Organisation />} />
+            <Route path="website-panel" element={<WebsitePanel />} />
+            <Route path="virtual-number" element={<VirtualNumber />} />
           </Route>
         </Route>
       </Route>
