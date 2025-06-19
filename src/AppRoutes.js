@@ -29,8 +29,14 @@ import ProjectSetupForm from './pages/project-setup/ProjectSetupForm';
 import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
+
 import WebsiteAreasDetails from './pages/setup/website-areas/WebsiteAreasDetails';
 import SlabRateDetails from './pages/setup/slab-rate/SlabRateDetails';
+
+import DocumentCentre from './pages/setup/DocumentCentre';
+import Countries from './pages/setup/Countries';
+import States from './pages/setup/States';
+import Cities from './pages/setup/Cities';
 
 
 const PrivateRoute = () => {
@@ -54,9 +60,7 @@ const AppRoutes = () => {
       {/* Private Route */}
       <Route element={<PrivateRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-
-          {/* Activities */}
+          <Route path="/" elemen
           <Route path="activities">
             <Route index element={<ActivitiesList />} />
             <Route path=":id" element={<ActivityDetails />} />
@@ -64,7 +68,7 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ActivityForm />} />
           </Route>
 
-          {/* Leads */}
+
           <Route path="leads">
             <Route index element={<LeadsList />} />
             <Route path=":id" element={<LeadDetails />} />
@@ -72,7 +76,7 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<LeadForm />} />
           </Route>
 
-          {/* Contacts */}
+
           <Route path="contacts">
             <Route index element={<ContactsList />} />
             <Route path=":id" element={<ContactDetails />} />
@@ -80,7 +84,7 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ContactForm />} />
           </Route>
 
-          {/* Project Setup */}
+
           <Route path="project-setup">
             <Route index element={<ProjectSetupList />} />
             <Route path=":id" element={<ProjectSetupDetails />} />
@@ -88,16 +92,24 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ProjectSetupForm />} />
           </Route>
 
-          {/* Setup */}
+
           <Route path="setup">
             <Route index element={<SetupList />} />
             <Route path=":id" element={<SetupDetails />} />
             <Route path="new" element={<SetupForm />} />
             <Route path="edit/:id" element={<SetupForm />} />
+
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
             <Route path="slab-rate" element={<SlabRateDetails />} />
 
             
+
+            <Route path="document-centre" element={<DocumentCentre />} />
+            <Route path="countries" element={<Countries />} />
+            {/* New States and Cities Pages */}
+            <Route path="states" element={<States />} />
+            <Route path="cities" element={<Cities />} />
+
           </Route>
         </Route>
       </Route>
