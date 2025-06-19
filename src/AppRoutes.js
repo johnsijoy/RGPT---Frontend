@@ -29,6 +29,8 @@ import ProjectSetupForm from './pages/project-setup/ProjectSetupForm';
 import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
+import WebsiteAreasDetails from './pages/setup/website-areas/WebsiteAreasDetails';
+import SlabRateDetails from './pages/setup/slab-rate/SlabRateDetails';
 import DocumentCentre from './pages/setup/DocumentCentre';
 import Organisation from './pages/setup/Organisation';
 import WebsitePanel from './pages/setup/WebsitePanel';
@@ -59,10 +61,12 @@ const PublicRoute = () => {
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public Route */}
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<Login />} />
       </Route>
 
+      {/* Private Route */}
       <Route element={<PrivateRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
@@ -105,6 +109,8 @@ const AppRoutes = () => {
             <Route path=":id" element={<SetupDetails />} />
             <Route path="new" element={<SetupForm />} />
             <Route path="edit/:id" element={<SetupForm />} />
+            <Route path="website-areas" element={<WebsiteAreasDetails />} />
+            <Route path="slab-rate" element={<SlabRateDetails />} />
             <Route path="document-centre" element={<DocumentCentre />} />
             <Route path="organisation" element={<Organisation />} />
             <Route path="website-panel" element={<WebsitePanel />} />
@@ -126,10 +132,12 @@ const AppRoutes = () => {
               <Route path="edit/:id" element={<WebsiteStatesForm />} />
               <Route path=":id" element={<WebsiteStatesDetails />} />
             </Route>
+
+            <Route path="organisation" element={<Organisation />} />
+            <Route path="website-panel" element={<WebsitePanel />} />
           </Route>
         </Route>
       </Route>
-
       <Route
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
