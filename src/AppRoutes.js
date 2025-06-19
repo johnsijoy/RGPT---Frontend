@@ -39,6 +39,16 @@ import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
 
+// Website Cities
+import WebsiteCitiesList from './pages/setup/websitecities/WebsiteCitiesList';
+import WebsiteCitiesForm from './pages/setup/websitecities/WebsiteCitiesForm';
+import WebsiteCitiesDetails from './pages/setup/websitecities/WebsiteCitiesDetails';
+
+// Website States
+import WebsiteStatesList from './pages/setup/websitestates/WebsiteStatesList';
+import WebsiteStatesForm from './pages/setup/websitestates/WebsiteStatesForm';
+import WebsiteStatesDetails from './pages/setup/websitestates/WebsiteStatesDetails';
+
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
   return currentUser ? <Outlet /> : <Navigate to="/login" />;
@@ -103,17 +113,35 @@ const AppRoutes = () => {
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
             <Route path="slab-rate" element={<SlabRateDetails />} />
             <Route path="document-centre" element={<DocumentCentre />} />
+            <Route path="organisation" element={<Organisation />} />
+            <Route path="website-panel" element={<WebsitePanel />} />
             <Route path="countries" element={<Countries />} />
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
+
+            {/* Website Cities */}
+            <Route path="website-cities">
+              <Route index element={<WebsiteCitiesList />} />
+              <Route path="new" element={<WebsiteCitiesForm />} />
+              <Route path=":id" element={<WebsiteCitiesDetails />} />
+            </Route>
+
+            {/* Website States */}
+            <Route path="website-states">
+              <Route index element={<WebsiteStatesList />} />
+              <Route path="new" element={<WebsiteStatesForm />} />
+              <Route path="edit/:id" element={<WebsiteStatesForm />} />
+              <Route path=":id" element={<WebsiteStatesDetails />} />
+            </Route>
+
             <Route path="organisation" element={<Organisation />} />
-<Route path="website-panel" element={<WebsitePanel />} />
-<Route path="virtual-number" element={<VirtualNumber />} />
+            <Route path="website-panel" element={<WebsitePanel />} />
+            <Route path="organisation" element={<Organisation />} />
+            <Route path="website-panel" element={<WebsitePanel />} />
+            <Route path="virtual-number" element={<VirtualNumber />} />
           </Route>
         </Route>
       </Route>
-
-      {/* Catch-all */}
       <Route
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
