@@ -9,6 +9,8 @@ import {
   Box
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 
 const Topbar = () => {
   const { currentUser, logout } = useAuth();
@@ -20,6 +22,12 @@ const Topbar = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const navigate = useNavigate();
+
+  const handleAdminPage = () => {
+    navigate('/admin/usermanagement');
   };
 
   const handleLogout = () => {
@@ -117,6 +125,7 @@ const Topbar = () => {
             },
           }}
         >
+          <MenuItem sx={{ fontSize: '0.95rem' }} onClick={handleAdminPage}>Admin</MenuItem>
           <MenuItem sx={{ fontSize: '0.95rem' }} onClick={handleMenuClose}>Profile</MenuItem>
           <MenuItem sx={{ fontSize: '0.95rem' }} onClick={handleLogout}>Logout</MenuItem>
         </Menu>
