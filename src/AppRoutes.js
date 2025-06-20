@@ -43,6 +43,8 @@ import VirtualNumber from './pages/setup/VirtualNumber';
 import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
+import Areas from './pages/setup/areas'; // Make sure filename is exactly areas.jsx
+import Localities from './pages/setup/localities'; // Make sure filename is exactly localities.jsx
 
 // Website Cities
 import WebsiteCitiesList from './pages/setup/websitecities/WebsiteCitiesList';
@@ -126,7 +128,8 @@ const AppRoutes = () => {
             <Route path="countries" element={<Countries />} />
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
-
+            <Route path="areas" element={<Areas />} />
+            <Route path="localities" element={<Localities />} />
             {/* Website Cities */}
             <Route path="website-cities">
               <Route index element={<WebsiteCitiesList />} />
