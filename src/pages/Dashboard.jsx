@@ -6,8 +6,6 @@ import {
   Grid,
   Card,
   CardContent,
-  useTheme,
-  useMediaQuery
 } from '@mui/material';
 import {
   AreaChart,
@@ -66,8 +64,6 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 const Dashboard = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
     <Box>

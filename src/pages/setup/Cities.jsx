@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import {
   Box, Typography, TextField, Button, Dialog, DialogTitle,
   DialogContent, DialogActions, Table, TableHead, TableBody, TableRow,
-  TableCell, TableContainer, Paper, TableSortLabel, MenuItem, Select, FormControl, InputLabel, Checkbox, IconButton
+  TableCell, TableContainer, Paper, TableSortLabel, Checkbox, IconButton,
+  Breadcrumbs, Link
 } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import * as XLSX from 'xlsx';
 
 const mockCities = [
@@ -83,52 +85,81 @@ const Cities = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" sx={{ flexGrow: 1 }}>Cities</Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <TextField size="small" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
-          <Button variant="outlined" onClick={handleEdit}>Edit</Button>
-          <Button variant="outlined" color="error" onClick={handleDelete}>Delete</Button>
-          <Button variant="contained" onClick={() => setOpen(true)}>Create City</Button>
-          <IconButton onClick={exportToExcel} color="primary">
-            <DescriptionIcon />
-          </IconButton>
-        </Box>
+    <Box sx={{ width: '100%', p: 2 }}>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize="small" />}
+        aria-label="breadcrumb"
+        sx={{ mb: 1, fontSize: '0.7rem' }}
+      >
+        <Link
+          component="a"
+          href="/"
+          underline="hover"
+          sx={{ color: 'text.secondary', fontSize: '0.7rem', '&:hover': { color: '#162F40' } }}
+        >
+          Home
+        </Link>
+        <Typography color="#162F40" sx={{ fontSize: '0.7rem', fontWeight: 500 }}>Cities</Typography>
+      </Breadcrumbs>
+
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2, alignItems: 'center' }}>
+        <TextField
+          size="small"
+          placeholder="Search..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          sx={{ maxWidth: '200px' }}
+        />
+        <Button size="small" variant="outlined" onClick={handleEdit}>Edit</Button>
+        <Button size="small" variant="outlined" color="error" onClick={handleDelete}>Delete</Button>
+        <Button size="small" variant="contained" onClick={() => setOpen(true)} sx={{ backgroundColor: '#162F40' }}>Create City</Button>
+        <IconButton onClick={exportToExcel} color="primary" size="small">
+          <DescriptionIcon fontSize="small" />
+        </IconButton>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead sx={{ backgroundColor: '#f0f8ff' }}>
+      <TableContainer component={Paper} elevation={1}>
+        <Table size="small">
+          <TableHead sx={{ backgroundColor: '#162F40' }}>
             <TableRow>
-              <TableCell padding="checkbox"></TableCell>
+              <TableCell padding="checkbox" sx={{ color: '#fff' }}></TableCell>
               {['cityName', 'state', 'country'].map(col => (
-                <TableCell key={col}>
+                <TableCell key={col} sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>
                   <TableSortLabel
                     active={sortConfig.key === col}
                     direction={sortConfig.key === col ? sortConfig.direction : 'asc'}
                     onClick={() => handleSort(col)}
+                    sx={{ color: '#fff !important', '& .MuiTableSortLabel-icon': { color: '#fff !important' } }}
                   >
-                    {col.toUpperCase()}
+                    {col.charAt(0).toUpperCase() + col.slice(1)}
                   </TableSortLabel>
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {filtered.map((city) => (
+            {filtered.length > 0 ? filtered.map(city => (
               <TableRow key={city.id}>
                 <TableCell padding="checkbox">
                   <Checkbox
+                    size="small"
                     checked={selectedIds.includes(city.id)}
                     onChange={() => handleCheckboxChange(city.id)}
                   />
                 </TableCell>
-                <TableCell>{city.cityName}</TableCell>
-                <TableCell>{city.state}</TableCell>
-                <TableCell>{city.country}</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem' }}>{city.cityName}</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem' }}>{city.state}</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem' }}>{city.country}</TableCell>
               </TableRow>
-            ))}
+            )) : (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  <Typography variant="body2" sx={{ py: 2 }}>
+                    No records found.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -136,12 +167,30 @@ const Cities = () => {
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{formData.id ? 'Edit City' : 'Create City'}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField label="City Name" value={formData.cityName} onChange={e => setFormData({ ...formData, cityName: e.target.value })} fullWidth size="medium" />
-          <TextField label="State" value={formData.state} onChange={e => setFormData({ ...formData, state: e.target.value })} fullWidth size="medium" />
-          <TextField label="Country" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} fullWidth size="medium" />
+          <TextField
+            label="City Name"
+            value={formData.cityName}
+            onChange={e => setFormData({ ...formData, cityName: e.target.value })}
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="State"
+            value={formData.state}
+            onChange={e => setFormData({ ...formData, state: e.target.value })}
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Country"
+            value={formData.country}
+            onChange={e => setFormData({ ...formData, country: e.target.value })}
+            fullWidth
+            size="small"
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={() => setOpen(false)} color="error">Cancel</Button>
           <Button onClick={handleSubmit} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
