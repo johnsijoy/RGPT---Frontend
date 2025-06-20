@@ -56,6 +56,10 @@ import WebsiteStatesList from './pages/setup/websitestates/WebsiteStatesList';
 import WebsiteStatesForm from './pages/setup/websitestates/WebsiteStatesForm';
 import WebsiteStatesDetails from './pages/setup/websitestates/WebsiteStatesDetails';
 
+// User Management
+import UserManagement from './pages/admin/UserManagement';
+
+
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
   return currentUser ? <Outlet /> : <Navigate to="/login" />;
@@ -153,6 +157,8 @@ const AppRoutes = () => {
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
+      
+      <Route path="/admin/usermanagement" element={<UserManagement />} />
     </Routes>
   );
 };
