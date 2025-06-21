@@ -33,6 +33,7 @@ import DocumentCentre from './pages/setup/DocumentCentre';
 import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
+import Organisation from './pages/setup/Organisation'; // ✅
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -98,6 +99,7 @@ const AppRoutes = () => {
             {/* New States and Cities Pages */}
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
+           <Route path="organisation" element={<Organisation />} />
           </Route>
         </Route>
       </Route>
