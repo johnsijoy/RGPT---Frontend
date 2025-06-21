@@ -156,17 +156,18 @@ const WebsiteCitiesForm = () => {
         {/* Buttons */}
         <div style={{ marginTop: '30px' }}>
           <Button
-            type="submit"
-            variant="contained"
-            style={{
-              backgroundColor: 'rgb(0, 128, 255)',
-              color: '#fff',
-              marginRight: '10px',
-              textTransform: 'none'
-            }}
-          >
-            ✔ Submit
-          </Button>
+  type="submit"
+  variant="contained"
+  style={{
+    backgroundColor: '#122E3E', // same as Create button
+    color: '#fff',
+    marginRight: '10px',
+    textTransform: 'none'
+  }}
+>
+  ✔ Submit
+</Button>
+
           <Button
             variant="contained"
             onClick={handleClear}
