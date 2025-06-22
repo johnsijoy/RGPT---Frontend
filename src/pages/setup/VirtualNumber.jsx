@@ -1,5 +1,3 @@
-// src/pages/setup/VirtualNumber.jsx
-
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableHead, TableRow,
