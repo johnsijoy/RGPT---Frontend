@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -10,21 +10,65 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Dialog, // Import Dialog components
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Typography // Added Typography for potential heading
+  TextField,
+  TableSortLabel,
+  IconButton,
+  Stack,
+  InputAdornment,
+  Typography,
 } from '@mui/material';
+import DescriptionIcon from '@mui/icons-material/Description';
+import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import * as XLSX from 'xlsx';
+import Breadcrumbs from '../../../components/common/Breadcrumbs';
+import Pagination from '../../../components/common/Pagination';
 
-function SlabRateList({ data, onEdit, onCreate, onDelete }) { // Changed to a named function for default export
+function SlabRateList({ data, onEdit, onCreate, onDelete }) {
   const [selectedId, setSelectedId] = useState(null);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State for delete confirmation dialog
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'type', direction: 'asc' });
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
 
   const handleCheckbox = (id) => {
     setSelectedId((prev) => (prev === id ? null : id));
   };
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  const filteredData = useMemo(() => {
+    return data.filter((item) =>
+      Object.values(item).some((val) =>
+        String(val).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [data, searchTerm]);
+
+  const sortedData = useMemo(() => {
+    return [...filteredData].sort((a, b) => {
+      const valA = a[sortConfig.key] ?? '';
+      const valB = b[sortConfig.key] ?? '';
+
+      if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredData, sortConfig]);
+
+  const pageCount = Math.ceil(filteredData.length / pageSize);
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (page - 1) * pageSize;
+    return sortedData.slice(startIndex, startIndex + pageSize);
+  }, [sortedData, page]);
 
   const handleModify = () => {
     const selected = data.find((item) => item.id === selectedId);
@@ -32,96 +76,225 @@ function SlabRateList({ data, onEdit, onCreate, onDelete }) { // Changed to a na
   };
 
   const handleDeleteClick = () => {
-    if (!selectedId) return; // Should already be disabled, but good to double-check
-    setOpenDeleteDialog(true); // Open the confirmation dialog
+    if (selectedId) {
+      onDelete(selectedId);
+      setSelectedId(null);
+    }
   };
 
-  const handleDeleteConfirm = () => {
-    onDelete(selectedId); // Call the provided onDelete prop
-    setSelectedId(null); // Clear selection after deletion
-    setOpenDeleteDialog(false); // Close the dialog
-  };
-
-  const handleDeleteCancel = () => {
-    setOpenDeleteDialog(false); // Close dialog without deleting
+  const handleExport = () => {
+    const worksheetData = data.map(({ id, ...rest }) => rest);
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'SlabRates');
+    XLSX.writeFile(workbook, 'slab_rates.xlsx');
   };
 
   return (
     <Box sx={{ p: 3, width: '100%' }}>
-      {/* Optional: Add a heading for the list if needed */}
-      <Typography variant="h6" sx={{ fontWeight: 600, color: '#134ca7', mb: 2 }}>
-        Slab Rate List
-      </Typography>
-
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
-        <Button
-          onClick={handleModify}
-          disabled={!selectedId}
-          variant="outlined" // Consistent outlined variant
-          size="small" // Consistent small size
-          sx={{ fontSize: '0.75rem', padding: '4px 10px', textTransform: 'none' }} // Consistent styles
-        >
-          Modify
-        </Button>
-        <Button
-          onClick={handleDeleteClick} // Use the new handler for dialog
-          disabled={!selectedId}
-          variant="outlined" // Consistent outlined variant
-          size="small" // Consistent small size
-          color="error" // Indicate a destructive action
-          sx={{ fontSize: '0.75rem', padding: '4px 10px', textTransform: 'none' }} // Consistent styles
-        >
-          Delete
-        </Button>
-        <Button
-          variant="contained"
-          onClick={onCreate}
-          color="primary" // Assuming primary maps to blue, or use bgcolor
-          size="small" // Consistent small size
-          sx={{ bgcolor: '#134ca7', fontSize: '0.75rem', padding: '4px 10px', textTransform: 'none' }} // Consistent styles
-        >
-          Create
-        </Button>
+      <Box mb={2}>
+        <Breadcrumbs
+          items={[
+            { label: 'Setup', path: '/setup' },
+            { label: 'Slab Rate List' },
+          ]}
+        />
       </Box>
 
-      <TableContainer component={Paper} elevation={1}> {/* Added elevation for subtle shadow */}
-        <Table size="small"> {/* Using small size for compact table */}
-          <TableHead sx={{ backgroundColor: '#162F40' }}> {/* Consistent dark header background */}
+      <Typography variant="h6" sx={{ flexGrow: 1, mb: 2 }}>
+        Slab Rate
+      </Typography>
+
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        mb={2}
+        flexWrap="wrap"
+      >
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+          <Button
+            onClick={handleModify}
+            disabled={!selectedId}
+            variant="outlined"
+            size="small"
+            sx={{ fontSize: '0.75rem', px: 2, textTransform: 'none' }}
+          >
+            Modify
+          </Button>
+
+          <Button
+            onClick={() => alert('Batch update clicked')}
+            disabled={!selectedId}
+            variant="outlined"
+            size="small"
+            sx={{ fontSize: '0.75rem', px: 2, textTransform: 'none' }}
+          >
+            Batch Update
+          </Button>
+
+          <Button
+            onClick={handleDeleteClick}
+            disabled={!selectedId}
+            variant="outlined"
+            size="small"
+            color="error"
+            sx={{ fontSize: '0.75rem', px: 2, textTransform: 'none' }}
+          >
+            Delete
+          </Button>
+        </Stack>
+
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+          <TextField
+            size="small"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
+            sx={{
+              width: 130,
+              '& .MuiInputBase-root': {
+                height: 30,
+                fontSize: '0.7rem',
+              },
+              '& .MuiInputBase-input': {
+                padding: '0px 6px',
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" sx={{ color: 'gray' }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <IconButton
+            size="small"
+            onClick={handleExport}
+            title="Export to Excel"
+            sx={{ color: 'green' }}
+          >
+            <DescriptionIcon fontSize="medium" />
+          </IconButton>
+
+          <Button
+            variant="contained"
+            onClick={onCreate}
+            size="small"
+            startIcon={<AddIcon />}
+            sx={{
+              bgcolor: '#122E3E',
+              fontSize: '0.75rem',
+              px: 2,
+              textTransform: 'none',
+              minWidth: 'fit-content',
+            }}
+          >
+            Create
+          </Button>
+        </Stack>
+      </Stack>
+
+      <TableContainer component={Paper} elevation={1}>
+        <Table size="small">
+          <TableHead sx={{ backgroundColor: '#162F40' }}>
             <TableRow>
-              <TableCell padding="checkbox" sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>
-                Select {/* Changed to Select for clarity, checkbox is implied */}
+              <TableCell
+                padding="checkbox"
+                sx={{
+                  color: '#fff',
+                  fontWeight: 500,
+                  fontSize: 13,
+                  cursor: 'default',
+                  userSelect: 'none',
+                }}
+              >
+                Select
               </TableCell>
-              <TableCell sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>Type</TableCell>
-              <TableCell sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>Slab Start</TableCell>
-              <TableCell sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>Slab End</TableCell>
-              <TableCell sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>Percent</TableCell>
-              <TableCell sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>Amount</TableCell>
-              <TableCell sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>From</TableCell>
-              <TableCell sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>To</TableCell>
-              <TableCell sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>Project</TableCell>
-              <TableCell sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>Formula</TableCell>
+              {[
+                'type',
+                'slabStart',
+                'slabEnd',
+                'percent',
+                'amount',
+                'from',
+                'to',
+                'project',
+                'formula',
+              ].map((key) => (
+                <TableCell
+                  key={key}
+                  sx={{
+                    color: '#fff',
+                    fontWeight: 500,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                  sortDirection={sortConfig.key === key ? sortConfig.direction : false}
+                  onClick={() => handleSort(key)}
+                >
+                  <TableSortLabel
+                    active={sortConfig.key === key}
+                    direction={sortConfig.key === key ? sortConfig.direction : 'asc'}
+                    IconComponent={() =>
+                      sortConfig.key === key ? (
+                        sortConfig.direction === 'asc' ? (
+                          <ArrowUpwardIcon sx={{ color: '#fff', fontSize: '0.85rem' }} />
+                        ) : (
+                          <ArrowDownwardIcon sx={{ color: '#fff', fontSize: '0.85rem' }} />
+                        )
+                      ) : (
+                        <ArrowDownwardIcon
+                          sx={{ color: '#fff', fontSize: '0.75rem', opacity: 0.4 }}
+                        />
+                      )
+                    }
+                    sx={{
+                      color: '#fff !important',
+                      '& .MuiTableSortLabel-icon': {
+                        color: '#fff !important',
+                      },
+                    }}
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {data.length > 0 ? (
-              data.map((item) => (
-                <TableRow key={item.id}>
+            {paginatedData.length > 0 ? (
+              paginatedData.map((item) => (
+                <TableRow key={item.id} hover>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      size="small" // Make checkbox smaller
+                      size="small"
                       checked={selectedId === item.id}
                       onChange={() => handleCheckbox(item.id)}
                     />
                   </TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{item.type}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{item.slabStart}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{item.slabEnd}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{item.percent}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{item.amount}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{item.from}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{item.to}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{item.project}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{item.formula}</TableCell>
+                  {[
+                    'type',
+                    'slabStart',
+                    'slabEnd',
+                    'percent',
+                    'amount',
+                    'from',
+                    'to',
+                    'project',
+                    'formula',
+                  ].map((field) => (
+                    <TableCell key={field} sx={{ fontSize: '0.75rem' }}>
+                      {item[field]}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))
             ) : (
@@ -135,30 +308,16 @@ function SlabRateList({ data, onEdit, onCreate, onDelete }) { // Changed to a na
         </Table>
       </TableContainer>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={openDeleteDialog}
-        onClose={handleDeleteCancel}
-        aria-labelledby="delete-dialog-title"
-        aria-describedby="delete-dialog-description"
-      >
-        <DialogTitle id="delete-dialog-title">{"Confirm Deletion"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="delete-dialog-description">
-            Are you sure you want to delete this slab rate? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel} color="info" sx={{ textTransform: 'none' }}>
-            Cancel
-          </Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained" autoFocus sx={{ textTransform: 'none' }}>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Box mt={2} display="flex" justifyContent="flex-end">
+        <Pagination
+          count={pageCount}
+          page={page}
+          onChange={setPage}
+          size="small"
+        />
+      </Box>
     </Box>
   );
 }
 
-export default SlabRateList; // Changed to default export
+export default SlabRateList;
