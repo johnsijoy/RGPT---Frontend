@@ -43,16 +43,12 @@ import VirtualNumber from './pages/setup/VirtualNumber';
 import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
+import WebsiteStates from './pages/setup/WebsiteStates';
+import WebsiteCities from './pages/setup/WebsiteCities';
 
-// Website Cities
-import WebsiteCitiesList from './pages/setup/websitecities/WebsiteCitiesList';
-import WebsiteCitiesForm from './pages/setup/websitecities/WebsiteCitiesForm';
-import WebsiteCitiesDetails from './pages/setup/websitecities/WebsiteCitiesDetails';
 
-// Website States
-import WebsiteStatesList from './pages/setup/websitestates/WebsiteStatesList';
-import WebsiteStatesForm from './pages/setup/websitestates/WebsiteStatesForm';
-import WebsiteStatesDetails from './pages/setup/websitestates/WebsiteStatesDetails';
+
+
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -118,6 +114,8 @@ const AppRoutes = () => {
 
             {/* Setup Subsections */}
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
+            <Route path="website-states" element={<WebsiteStates />} />
+            <Route path="website-cities" element={<WebsiteCities />} />
             <Route path="slab-rate" element={<SlabRateDetails />} />
             <Route path="document-centre" element={<DocumentCentre />} />
             <Route path="organisation" element={<Organisation />} />
@@ -126,21 +124,6 @@ const AppRoutes = () => {
             <Route path="countries" element={<Countries />} />
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
-
-            {/* Website Cities */}
-            <Route path="website-cities">
-              <Route index element={<WebsiteCitiesList />} />
-              <Route path="new" element={<WebsiteCitiesForm />} />
-              <Route path=":id" element={<WebsiteCitiesDetails />} />
-            </Route>
-
-            {/* Website States */}
-            <Route path="website-states">
-              <Route index element={<WebsiteStatesList />} />
-              <Route path="new" element={<WebsiteStatesForm />} />
-              <Route path="edit/:id" element={<WebsiteStatesForm />} />
-              <Route path=":id" element={<WebsiteStatesDetails />} />
-            </Route>
           </Route>
         </Route>
       </Route>
