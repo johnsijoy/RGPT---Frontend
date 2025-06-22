@@ -8,6 +8,8 @@ import {
 import DescriptionIcon from '@mui/icons-material/Description';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import UpdateIcon from '@mui/icons-material/Update';
 import Breadcrumbs from '../../components/common/Breadcrumbs';
 import Pagination from '../../components/common/Pagination';
 import * as XLSX from 'xlsx';
@@ -91,65 +93,76 @@ const Organisation = () => {
       <Typography variant="h6" sx={{ fontWeight: 600, color: '#122E3E', mb: 1 }}>
         Organisations
       </Typography>
-{/* Buttons: Modify and Batch Update on Left, Other controls on Right */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 2,
-        }}
-      >
-        {/* Left Side Buttons */}
-        <Box sx={{ display: 'flex', gap: 1 }}>
+
+      {/* Top control layout */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', alignItems: 'flex-start', mb: 2 }}>
+        {/* Left buttons - Modify & Batch */}
+        <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
           <Button
-            size="small"
             variant="outlined"
-            onClick={handleEdit}
+            size="small"
+            startIcon={<EditIcon />}
             disabled={selectedItems.length !== 1}
             sx={{ fontSize: '0.75rem', textTransform: 'none' }}
+            onClick={handleEdit}
           >
             Modify
           </Button>
-
           <Button
-            size="small"
             variant="outlined"
-            onClick={() => alert('Batch update logic placeholder')}
-            disabled={selectedItems.length === 0}
+            size="small"
+            startIcon={<UpdateIcon />}
+            disabled
             sx={{ fontSize: '0.75rem', textTransform: 'none' }}
           >
             Batch Update
           </Button>
         </Box>
 
-        {/* Right Side Controls */}
-        <Box
-          sx={{
-            display: 'flex',
-            gap: 1.5,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
+        {/* Right controls - Search, Filter, Export, Create */}
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Updated Search */}
           <TextField
             size="small"
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             InputProps={{
-              startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: 'gray' }} />,
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" sx={{ color: 'gray' }} />
+                </InputAdornment>
+              ),
+              sx: {
+                height: 36,
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                backgroundColor: '#fff'
+              }
             }}
-            sx={{ minWidth: 180 }}
+            sx={{
+              minWidth: 180,
+              '& .MuiOutlinedInput-root': {
+                height: 36,
+                borderRadius: '8px',
+                fontSize: '0.8rem'
+              }
+            }}
           />
 
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Select a Query</InputLabel>
+          {/* Updated Select Dropdown */}
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel sx={{ fontSize: '0.8rem', top: '-4px' }}>Select a Query</InputLabel>
             <Select
               value={selectQuery}
               label="Select a Query"
               onChange={(e) => setSelectQuery(e.target.value)}
+              sx={{
+                height: 36,
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                backgroundColor: '#fff'
+              }}
             >
               <MenuItem value="All">All</MenuItem>
               <MenuItem value="Active">Active</MenuItem>
@@ -157,28 +170,23 @@ const Organisation = () => {
             </Select>
           </FormControl>
 
-<IconButton onClick={handleExportToExcel} sx={{ color: 'green' }}>
+          <IconButton onClick={handleExportToExcel} sx={{ color: 'green' }}>
             <DescriptionIcon />
           </IconButton>
-<Button
-  variant="contained"
-  size="small"
-  startIcon={<AddIcon />}
-  onClick={() => {
-    setShowForm(true);
-    setIsEditMode(false);
-    setFormData({ name: '', type: '', industry: '', description: '', createdBy: '', status: 'Active' });
-  }}
-  sx={{
-    bgcolor: '#122E3E',
-    textTransform: 'none',
-    fontSize: '0.75rem',
-    padding: '6px 16px',
-    width: 110
-  }}
->
-  Create
-</Button>
+
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setShowForm(true);
+              setIsEditMode(false);
+              setFormData({ name: '', type: '', industry: '', description: '', createdBy: '', status: 'Active' });
+            }}
+            sx={{ bgcolor: '#122E3E', textTransform: 'none', fontSize: '0.75rem' }}
+          >
+            Create
+          </Button>
         </Box>
       </Box>
 
@@ -322,3 +330,11 @@ const Organisation = () => {
 };
 
 export default Organisation;
+
+
+
+
+
+
+
+

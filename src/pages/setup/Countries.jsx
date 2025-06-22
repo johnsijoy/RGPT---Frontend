@@ -1,205 +1,205 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Typography,
-  Select,
-  MenuItem,
-  TextField,
-  InputAdornment,
-  IconButton,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Checkbox,
-  Paper,
-  TablePagination,
-  Button,
-  FormControl,
-  InputLabel,
+  Box, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, TextField, Button,
+  InputAdornment, Select, MenuItem, IconButton, Tooltip,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 
 import {
   Search as SearchIcon,
-  FilterList as FilterListIcon,
-  Download as DownloadIcon,
+  Description as DescriptionIcon,
+  Add as AddIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
+import countriesData from '../../mock/Countries';
+import Pagination from '../../components/common/Pagination';
 
+const Breadcrumbs = () => (
+  <Typography variant="body2" sx={{ fontSize: '0.75rem', mb: 2 }}>
+    Home / Countries
+  </Typography>
+);
 
-const countriesData = [
-  { id: '47730966742691691', name: 'Dubai, UAE', code: 'UAE', description: 'Middle Eastern Country' },
-  { id: '452841597447000171', name: 'India', code: 'IN', description: 'South Asian Country' },
-  { id: '23489472378937842', name: 'United States', code: 'US', description: 'North American Country' },
-  { id: '91823478972348912', name: 'Canada', code: 'CA', description: 'Country in North America' },
-  { id: '91238912389128391', name: 'Germany', code: 'DE', description: 'European Country' },
-  { id: '21389472389472389', name: 'Singapore', code: 'SG', description: 'Island Country in Southeast Asia' },
-  { id: '48374982374982374', name: 'Australia', code: 'AU', description: 'Country in Oceania' },
-];
-
-export default function Countries() {
-  const [query, setQuery] = useState('');
+const Countries = () => {
+  const [countries, setCountries] = useState(countriesData);
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
-  const rowsPerPage = 5;
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [formData, setFormData] = useState({ name: '', code: '', description: '' });
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  const rowsPerPage = 25;
 
-  const handleSelectAll = (event) => {
-    setSelectedRows(event.target.checked ? filteredData.map((row) => row.id) : []);
-  };
+  const filtered = countries.filter(country => {
+    const matchesSearch =
+      country.name.toLowerCase().includes(search.toLowerCase()) ||
+      country.code.toLowerCase().includes(search.toLowerCase()) ||
+      country.description?.toLowerCase().includes(search.toLowerCase());
+    const matchesQuery = query ? country.code === query : true;
+    return matchesSearch && matchesQuery;
+  });
 
-  const handleSelectRow = (id) => {
-    setSelectedRows((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
-  const filteredData = countriesData.filter(
-    (row) =>
-      (!query || row.code === query || row.name.includes(query)) &&
-      (!search ||
-        row.id.includes(search) ||
-        row.name.toLowerCase().includes(search.toLowerCase()) ||
-        row.code.toLowerCase().includes(search.toLowerCase()))
-  );
+  const paginated = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   const handleExportExcel = () => {
-    const exportData = filteredData.map((row) => ({
-      ID: row.id,
+    const exportData = filtered.map(row => ({
       Name: row.name,
       Code: row.code,
-      Description: row.description || '-',
+      Description: row.description || '-'
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Countries');
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], {
-      type:
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8',
-    });
-    saveAs(blob, 'Countries.xlsx');
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Countries');
+    XLSX.writeFile(wb, 'Countries.xlsx');
+  };
+
+  const handleCreate = () => {
+    const newId = countries.length ? Math.max(...countries.map(c => c.id)) + 1 : 1;
+    const newCountry = { id: newId, ...formData };
+    setCountries(prev => [...prev, newCountry]);
+    setFormData({ name: '', code: '', description: '' });
+    setOpenDialog(false);
   };
 
   return (
-    <Box sx={{ p: 3, width: '100%' }}>
-      {/* Filter Row */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel id="filter-label">Filter by Country</InputLabel>
-          <Select
-            labelId="filter-label"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            label="Filter by Country"
-          >
-            {countriesData.map((country) => (
-              <MenuItem key={country.code} value={country.code}>
-                {country.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+    <Box sx={{ padding: 2, backgroundColor: '#fff', borderRadius: 2 }}>
+      <Breadcrumbs />
+
+      {/* Header Section */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>Countries</Typography>
 
         <TextField
+          variant="outlined"
           size="small"
-          placeholder="Search"
-          value={search}
+          placeholder="Search..."
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 200 }}
+          sx={{ minWidth: 160, '& .MuiInputBase-root': { fontSize: '0.75rem', minHeight: '28px' } }}
           InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton size="small">
-                  <SearchIcon />
-                </IconButton>
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
               </InputAdornment>
-            ),
+            )
           }}
         />
 
+        <Select
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          size="small"
+          displayEmpty
+          sx={{ minWidth: 160, fontSize: '0.75rem' }}
+        >
+          <MenuItem value="">All Countries</MenuItem>
+          {countries.map(c => (
+            <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>
+          ))}
+        </Select>
+
+        <Tooltip title="Export to Excel">
+          <IconButton size="small" sx={{ color: 'green' }} onClick={handleExportExcel}>
+            <DescriptionIcon fontSize="medium" />
+          </IconButton>
+        </Tooltip>
+
         <Button
           variant="contained"
-          color="primary"
           size="small"
-          startIcon={<DownloadIcon />}
-          onClick={handleExportExcel}
+          sx={{
+            bgcolor: '#122E3E',
+            textTransform: 'none',
+            fontSize: '0.75rem',
+            padding: '4px 10px'
+          }}
+          startIcon={<AddIcon />}
+          onClick={() => setOpenDialog(true)}
         >
-          Export to Excel
+          Create
         </Button>
       </Box>
 
-      {/* Table */}
-      <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: '#f9f9f9' }}>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  size="small"
-                  checked={selectedRows.length === filteredData.length && filteredData.length > 0}
-                  onChange={handleSelectAll}
-                />
-              </TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 600 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  Countries ID <FilterListIcon fontSize="small" sx={{ color: 'black' }} />
-                </Box>
-              </TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 600 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  Country Name <FilterListIcon fontSize="small" sx={{ color: 'black' }} />
-                </Box>
-              </TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 600 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  Country Code <FilterListIcon fontSize="small" sx={{ color: 'black' }} />
-                </Box>
-              </TableCell>
-              <TableCell sx={{ color: 'black', fontWeight: 600 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  Country Description <FilterListIcon fontSize="small" sx={{ color: 'black' }} />
-                </Box>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-              <TableRow key={row.id}>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    size="small"
-                    checked={selectedRows.includes(row.id)}
-                    onChange={() => handleSelectRow(row.id)}
-                  />
-                </TableCell>
-                <TableCell sx={{ color: 'black' }}>{row.id}</TableCell>
-                <TableCell sx={{ color: 'black' }}>{row.name}</TableCell>
-                <TableCell sx={{ color: 'black' }}>{row.code}</TableCell>
-                <TableCell sx={{ color: 'black' }}>{row.description || '-'}</TableCell>
+      {/* Table Section */}
+      <Paper>
+        <TableContainer>
+          <Table size="small">
+            <TableHead sx={{ backgroundColor: '#122E3E' }}>
+              <TableRow>
+                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Name</b></TableCell>
+                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Code</b></TableCell>
+                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Description</b></TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {paginated.map(row => (
+                <TableRow key={row.id} hover>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.name}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.code}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.description || '-'}</TableCell>
+                </TableRow>
+              ))}
+              {paginated.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={3} align="center">No records found.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-        <TablePagination
-          rowsPerPageOptions={[5]}
-          component="div"
-          count={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          sx={{ borderTop: '1px solid #eee' }}
-        />
+        {/* Pagination */}
+        <Box mt={2} display="flex" justifyContent="flex-end">
+          <Pagination
+            count={Math.ceil(filtered.length / rowsPerPage)}
+            page={page}
+            onChange={setPage}
+            size="small"
+          />
+        </Box>
       </Paper>
+
+      {/* Create Dialog */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Create Country
+          <IconButton onClick={() => setOpenDialog(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            fullWidth
+            label="Name"
+            margin="dense"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            label="Code"
+            margin="dense"
+            value={formData.code}
+            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            label="Description"
+            margin="dense"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleCreate}>Save</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
-}
+};
+
+export default Countries;

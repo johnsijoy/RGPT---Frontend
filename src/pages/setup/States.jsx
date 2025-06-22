@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import {
   Box, Typography, TextField, Button, Dialog, DialogTitle,
   DialogContent, DialogActions, Table, TableHead, TableBody, TableRow,
-  TableCell, TableContainer, Paper, TableSortLabel, MenuItem, Select, FormControl, InputLabel, Checkbox, IconButton
+  TableCell, TableContainer, Paper, TableSortLabel, MenuItem, Select,
+  FormControl, InputLabel, Checkbox, IconButton, Chip
 } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import * as XLSX from 'xlsx';
@@ -16,7 +17,7 @@ const mockStates = [
 const States = () => {
   const [open, setOpen] = useState(false);
   const [states, setStates] = useState(mockStates);
-  const [formData, setFormData] = useState({ stateId: '', name: '', description: '', country: '', status: 'Active' });
+  const [formData, setFormData] = useState({ id: null, stateId: '', name: '', description: '', country: '', status: 'Active' });
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortConfig, setSortConfig] = useState({ key: 'stateId', direction: 'asc' });
@@ -46,11 +47,11 @@ const States = () => {
   const handleSubmit = () => {
     if (formData.id) {
       setStates(prev => prev.map(s => s.id === formData.id ? formData : s));
-      setSelectedIds(prev => prev.filter(id => id !== formData.id));
+      setSelectedIds([]);
     } else {
-      setStates([...states, { id: Date.now(), ...formData }]);
+      setStates([...states, { ...formData, id: Date.now() }]);
     }
-    setFormData({ stateId: '', name: '', description: '', country: '', status: 'Active' });
+    setFormData({ id: null, stateId: '', name: '', description: '', country: '', status: 'Active' });
     setOpen(false);
   };
 
@@ -84,74 +85,92 @@ const States = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" sx={{ flexGrow: 1 }}>States</Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <TextField size="small" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Status</InputLabel>
-            <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} label="Status">
-              <MenuItem value="All">All</MenuItem>
-              <MenuItem value="Active">Active</MenuItem>
-              <MenuItem value="Inactive">Inactive</MenuItem>
-            </Select>
-          </FormControl>
-          <Button variant="outlined" onClick={handleEdit}>Edit</Button>
-          <Button variant="outlined" color="error" onClick={handleDelete}>Delete</Button>
-          <Button variant="contained" onClick={() => setOpen(true)}>Create State</Button>
-          <IconButton onClick={exportToExcel} color="primary">
-            <DescriptionIcon />
-          </IconButton>
-        </Box>
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600, color: '#134ca7' }}>States</Typography>
+        <TextField size="small" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>Status</InputLabel>
+          <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} label="Status">
+            <MenuItem value="All">All</MenuItem>
+            <MenuItem value="Active">Active</MenuItem>
+            <MenuItem value="Inactive">Inactive</MenuItem>
+          </Select>
+        </FormControl>
+        <Button size="small" variant="outlined" onClick={handleEdit}>Edit</Button>
+        <Button size="small" variant="outlined" color="error" onClick={handleDelete}>Delete</Button>
+        <Button size="small" variant="contained" sx={{ bgcolor: '#134ca7' }} onClick={() => setOpen(true)}>Create</Button>
+        <IconButton onClick={exportToExcel} color="primary">
+          <DescriptionIcon />
+        </IconButton>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead sx={{ backgroundColor: '#f0f8ff' }}>
+      <TableContainer component={Paper} elevation={1}>
+        <Table size="small">
+          <TableHead sx={{ backgroundColor: '#162F40' }}>
             <TableRow>
-              <TableCell padding="checkbox"></TableCell>
-              {['stateId', 'name', 'description', 'country', 'status'].map(col => (
-                <TableCell key={col}>
+              <TableCell padding="checkbox" sx={{ color: '#fff' }}></TableCell>
+              {['stateId', 'name', 'description', 'country', 'status'].map((col) => (
+                <TableCell key={col} sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>
                   <TableSortLabel
                     active={sortConfig.key === col}
                     direction={sortConfig.key === col ? sortConfig.direction : 'asc'}
                     onClick={() => handleSort(col)}
+                    sx={{ color: '#fff !important', '& .MuiTableSortLabel-icon': { color: '#fff !important' } }}
                   >
-                    {col.toUpperCase()}
+                    {col.charAt(0).toUpperCase() + col.slice(1)}
                   </TableSortLabel>
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {filtered.map((state) => (
+            {filtered.length > 0 ? filtered.map((state) => (
               <TableRow key={state.id}>
                 <TableCell padding="checkbox">
                   <Checkbox
+                    size="small"
                     checked={selectedIds.includes(state.id)}
                     onChange={() => handleCheckboxChange(state.id)}
                   />
                 </TableCell>
-                <TableCell>{state.stateId}</TableCell>
-                <TableCell>{state.name}</TableCell>
-                <TableCell>{state.description}</TableCell>
-                <TableCell>{state.country}</TableCell>
-                <TableCell>{state.status}</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem' }}>{state.stateId}</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem' }}>{state.name}</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem' }}>{state.description}</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem' }}>{state.country}</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem' }}>
+                  <Chip
+                    label={state.status}
+                    size="small"
+                    sx={{
+                      backgroundColor: state.status === 'Active' ? '#d4edda' : '#f8d7da',
+                      color: state.status === 'Active' ? '#155724' : '#721c24',
+                      fontWeight: 500
+                    }}
+                  />
+                </TableCell>
               </TableRow>
-            ))}
+            )) : (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  <Typography variant="body2" sx={{ py: 2 }}>
+                    No records found.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{formData.id ? 'Edit State' : 'Create State'}</DialogTitle>
+        <DialogTitle sx={{ bgcolor: '#f5faff', fontWeight: 600 }}>{formData.id ? 'Edit State' : 'Create State'}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField label="State ID" value={formData.stateId} onChange={e => setFormData({ ...formData, stateId: e.target.value })} fullWidth size="medium" />
-          <TextField label="State Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} fullWidth size="medium" />
-          <TextField label="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} fullWidth size="medium" />
-          <TextField label="Country" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} fullWidth size="medium" />
-          <FormControl fullWidth size="medium">
+          <TextField label="State ID" value={formData.stateId} onChange={e => setFormData({ ...formData, stateId: e.target.value })} fullWidth size="small" />
+          <TextField label="State Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} fullWidth size="small" />
+          <TextField label="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} fullWidth size="small" />
+          <TextField label="Country" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} fullWidth size="small" />
+          <FormControl fullWidth size="small">
             <InputLabel>Status</InputLabel>
             <Select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} label="Status">
               <MenuItem value="Active">Active</MenuItem>
@@ -159,9 +178,9 @@ const States = () => {
             </Select>
           </FormControl>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">Save</Button>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button size="small" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button size="small" variant="contained" sx={{ bgcolor: '#134ca7' }} onClick={handleSubmit}>Save</Button>
         </DialogActions>
       </Dialog>
     </Box>

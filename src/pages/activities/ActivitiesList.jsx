@@ -22,12 +22,15 @@ import {
   FormControl,
   IconButton
 } from '@mui/material';
+
 import DescriptionIcon from '@mui/icons-material/Description'; // Excel-like icon
 import CreateActivityForm from './ActivityForm';
 import Breadcrumbs from '../../components/common/Breadcrumbs';
 import Pagination from '../../components/common/Pagination';
 import { mockActivities } from '../../mock/activities';
 import * as XLSX from 'xlsx';
+
+
 // Reusable SX for smaller inputs
 const smallerInputSx = {
   // Target the root of the InputBase within FormControl/TextField
@@ -123,7 +126,6 @@ const ActivitiesList = () => {
   const sortedActivities = [...activities].sort((a, b) => {
     const valA = a[sortConfig.key]?.toLowerCase?.() || a[sortConfig.key];
     const valB = b[sortConfig.key]?.toLowerCase?.() || b[sortConfig.key];
-
     if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
     if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
     return 0;
@@ -163,6 +165,9 @@ const ActivitiesList = () => {
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           Activities
         </Typography>
+
+
+
 
         <TextField
           variant="outlined"

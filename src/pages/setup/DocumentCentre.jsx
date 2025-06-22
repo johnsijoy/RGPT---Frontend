@@ -1,392 +1,344 @@
-// src/pages/setup/DocumentCentre.jsx
 import React, { useState } from 'react';
 import {
-  Box,
-  Button,
-  InputBase,
-  Paper,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Checkbox,
-  TablePagination,
-  Typography,
-  Stack,
-  TableContainer,
+  Box, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, TextField, Checkbox, Button,
+  InputAdornment, Select, MenuItem, IconButton, Stack, Tooltip,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
-import {
-  Search as SearchIcon,
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  List as ListIcon,
-  Refresh as RefreshIcon,
-} from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
 
-// Dummy data
-const initialDocs = [
-  { id: 1, name: 'Report Logo', category: 'Report Images', description: 'Logo for final reports', assignedTo: ['Team Orbit'], teams: ['Public Team'] },
-  { id: 2, name: 'Inner Logo', category: 'Logos', description: 'Logo used in document header', assignedTo: ['Team Alpha'], teams: ['Design'] },
-  { id: 3, name: 'Invoice Template', category: 'Templates', description: 'PDF Invoice format', assignedTo: ['Finance'], teams: ['Billing'] },
-  { id: 4, name: 'Proposal Draft', category: 'Documents', description: 'Draft format for client proposal', assignedTo: ['Sales'], teams: ['Proposal Team'] },
-  { id: 5, name: 'Annual Report', category: 'Reports', description: 'Company annual summary', assignedTo: ['Executive'], teams: ['Board'] },
-  { id: 6, name: 'Onboarding Guide', category: 'HR', description: 'For new hires', assignedTo: ['HR'], teams: ['Training'] },
-  { id: 7, name: 'Legal Agreement', category: 'Legal', description: 'Standard NDA', assignedTo: ['Legal'], teams: ['Compliance'] },
-];
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import DescriptionIcon from '@mui/icons-material/Description';
+import CloseIcon from '@mui/icons-material/Close';
 
-function DocumentCentre() {
-  const theme = useTheme();
-  const [searchText, setSearchText] = useState('');
-  const [queryType, setQueryType] = useState('');
-  const [documents, setDocuments] = useState(initialDocs);
+import * as XLSX from 'xlsx';
+
+import mockDocuments from '../../mock/DocumentCentre';
+import Pagination from '../../components/common/Pagination';
+
+const Breadcrumbs = () => (
+  <Typography variant="body2" sx={{ fontSize: '0.75rem', mb: 2 }}>
+    Home / Document Centre
+  </Typography>
+);
+
+const DocumentCentre = () => {
+  const [documents, setDocuments] = useState(mockDocuments);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [page, setPage] = useState(0);
-  const rowsPerPage = 5;
-  const [dialogType, setDialogType] = useState(null);
-  const [form, setForm] = useState({ name: '', category: '', description: '', assignedTo: [], teams: [] });
-
-  // Filter documents by search and query type
-  const filteredDocs = documents.filter((doc) => {
-    const matchesSearch = Object.values(doc).some((val) =>
-      typeof val === 'string'
-        ? val.toLowerCase().includes(searchText.toLowerCase())
-        : Array.isArray(val) && val.join(',').toLowerCase().includes(searchText.toLowerCase())
-    );
-    const matchesQuery = queryType ? doc.category.toLowerCase().includes(queryType.toLowerCase()) : true;
-    return matchesSearch && matchesQuery;
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
+  const [page, setPage] = useState(1);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogType, setDialogType] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    category: '',
+    description: '',
+    assignedTo: [],
+    teams: [],
   });
 
-  const pageDocs = filteredDocs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const rowsPerPage = 25;
+  const categories = [...new Set(documents.map(doc => doc.category))];
 
-  // Select all on current page
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedIds(pageDocs.map((d) => d.id));
-    } else {
-      setSelectedIds([]);
-    }
-  };
-
-  // Select individual row
-  const handleRowSelect = (id) => {
-    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
-
-  // Open dialogs: create, modify, batch update, delete
-  const openDialog = (type) => {
-    if (type === 'modify' && selectedIds.length === 1) {
-      const doc = documents.find((d) => d.id === selectedIds[0]);
-      setForm({ ...doc });
-    } else if (type === 'batch') {
-      setForm({ teams: [] });
-    } else if (type === 'create') {
-      setForm({ name: '', category: '', description: '', assignedTo: [], teams: [] });
-    }
-    setDialogType(type);
-  };
-
-  // Close dialog and reset form
-  const closeDialog = () => {
-    setForm({ name: '', category: '', description: '', assignedTo: [], teams: [] });
-    setDialogType(null);
-  };
-
-  // Create new document
-  const handleCreate = () => {
-    setDocuments((docs) => [...docs, { ...form, id: Date.now() }]);
-    closeDialog();
-  };
-
-  // Modify selected document
-  const handleModify = () => {
-    setDocuments((docs) =>
-      docs.map((d) => (d.id === selectedIds[0] ? { ...d, ...form } : d))
+  const filtered = documents.filter(doc => {
+    const matchesSearch = Object.values(doc).some(val =>
+      typeof val === 'string'
+        ? val.toLowerCase().includes(search.toLowerCase())
+        : Array.isArray(val) &&
+          val.join(', ').toLowerCase().includes(search.toLowerCase())
     );
-    closeDialog();
+    const matchesCategory = category ? doc.category === category : true;
+    return matchesSearch && matchesCategory;
+  });
+
+  const paginated = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  const handleSelectAll = (e) => {
+    setSelectedIds(e.target.checked ? paginated.map(doc => doc.id) : []);
   };
 
-  // Batch update teams on selected documents
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleExport = () => {
+    const data = filtered.map(doc => ({
+      Name: doc.name,
+      Category: doc.category,
+      Description: doc.description,
+      'Assigned To': doc.assignedTo.join(', '),
+      Teams: doc.teams.join(', ')
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Documents');
+    XLSX.writeFile(wb, 'DocumentCentre.xlsx');
+  };
+
   const handleBatchUpdate = () => {
-    setDocuments((docs) =>
-      docs.map((d) =>
-        selectedIds.includes(d.id)
-          ? { ...d, teams: form.teams.length ? form.teams : d.teams }
-          : d
+    if (selectedIds.length === 0) {
+      alert('Select at least one record for batch update');
+      return;
+    }
+
+    setDocuments(prevDocs =>
+      prevDocs.map(doc =>
+        selectedIds.includes(doc.id)
+          ? { ...doc, category: 'Updated Category' }
+          : doc
       )
     );
-    closeDialog();
+
+    alert(`Batch update applied to ${selectedIds.length} document(s)`);
+    setSelectedIds([]);
   };
 
-  // Delete selected documents
-  const handleDelete = () => {
-    setDocuments((docs) => docs.filter((d) => !selectedIds.includes(d.id)));
+  const handleDialogSave = () => {
+    if (dialogType === 'create') {
+      const newId = documents.length > 0
+        ? Math.max(...documents.map(d => d.id)) + 1
+        : 1;
+      setDocuments([...documents, { ...formData, id: newId }]);
+    } else if (dialogType === 'modify') {
+      setDocuments(docs =>
+        docs.map(d =>
+          d.id === formData.id ? { ...formData } : d
+        )
+      );
+    }
+
+    setOpenDialog(false);
+    setFormData({
+      name: '',
+      category: '',
+      description: '',
+      assignedTo: [],
+      teams: [],
+    });
     setSelectedIds([]);
-    closeDialog();
   };
 
   return (
-    <Box
-      sx={{
-        p: 4,
-        backgroundColor: theme.palette.background.paper,
-        borderRadius: 3,
-        boxShadow: 2,
-        maxWidth: '100%',
-        mx: 'auto',
-        color: theme.palette.text.primary,
-        fontSize: '0.95rem',
-        boxSizing: 'border-box', // ensure padding included
-      }}
-    >
-      {/* Search & Filters */}
-      <Stack direction="row" spacing={2} alignItems="center" mb={3} flexWrap="wrap">
-        <Paper
-          component="form"
-          sx={{
-            p: '2px 8px',
-            display: 'flex',
-            alignItems: 'center',
-            width: 360,
-            backgroundColor: theme.palette.background.default,
-            borderRadius: 2,
+    <Box sx={{ padding: 2, backgroundColor: '#fff', borderRadius: 2 }}>
+      <Breadcrumbs />
+
+      {/* Header Actions */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>Document Centre</Typography>
+
+        <TextField
+          variant="outlined"
+          size="small"
+          placeholder="Search..."
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ minWidth: 160, '& .MuiInputBase-root': { fontSize: '0.75rem', minHeight: '28px' } }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            )
           }}
-          onSubmit={(e) => e.preventDefault()}
+        />
+
+        <Select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          size="small"
+          displayEmpty
+          sx={{ minWidth: 160, fontSize: '0.75rem' }}
         >
-          <InputBase
-            sx={{ ml: 1, flex: 1, fontSize: '1rem' }}
-            placeholder="Search"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            inputProps={{ 'aria-label': 'search documents' }}
-          />
-          <SearchIcon sx={{ color: theme.palette.text.secondary, mr: 1 }} />
-        </Paper>
+          <MenuItem value="">All Categories</MenuItem>
+          {categories.map(cat => (
+            <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+          ))}
+        </Select>
 
-        <FormControl size="small" sx={{ minWidth: 140 }}>
-          <InputLabel id="query-select-label">Select A Query</InputLabel>
-          <Select
-            labelId="query-select-label"
-            value={queryType}
-            label="Select A Query"
-            onChange={(e) => setQueryType(e.target.value)}
-          >
-            <MenuItem value="">None</MenuItem>
-            <MenuItem value="report">Report</MenuItem>
-            <MenuItem value="logo">Logo</MenuItem>
-          </Select>
-        </FormControl>
+        <Tooltip title="Export to Excel">
+          <IconButton size="small" sx={{ color: 'green' }} onClick={handleExport}>
+            <DescriptionIcon fontSize="medium" />
+          </IconButton>
+        </Tooltip>
 
-        <Button variant="contained" size="small" onClick={() => setPage(0)}>Search</Button>
-        <Button variant="outlined" size="small" startIcon={<RefreshIcon />}>Save</Button>
-        <Button variant="outlined" size="small" onClick={() => { setSearchText(''); setQueryType(''); setPage(0); }}>Reset</Button>
-      </Stack>
-
-      {/* Action Buttons */}
-      <Stack direction="row" spacing={1} mb={3} flexWrap="wrap">
-        <Button size="small" startIcon={<AddIcon />} onClick={() => openDialog('create')}>
+        <Button
+          variant="contained"
+          size="small"
+          sx={{ bgcolor: '#122E3E', textTransform: 'none', fontSize: '0.75rem', padding: '4px 10px' }}
+          startIcon={<AddIcon />}
+          onClick={() => {
+            setFormData({
+              name: '',
+              category: '',
+              description: '',
+              assignedTo: [],
+              teams: [],
+            });
+            setDialogType('create');
+            setOpenDialog(true);
+          }}
+        >
           Create
         </Button>
-        <Button size="small" startIcon={<EditIcon />} onClick={() => openDialog('modify')} disabled={selectedIds.length !== 1}>
+      </Box>
+
+      {/* Modify/Delete/BatchUpdate */}
+      <Stack direction="row" spacing={1} mb={2}>
+        <Button
+          variant="outlined"
+          size="small"
+          disabled={selectedIds.length !== 1}
+          onClick={() => {
+            const selected = documents.find(doc => doc.id === selectedIds[0]);
+            setFormData({ ...selected });
+            setDialogType('modify');
+            setOpenDialog(true);
+          }}
+        >
           Modify
         </Button>
-        <Button size="small" startIcon={<ListIcon />} onClick={() => openDialog('batch')} disabled={selectedIds.length === 0}>
-          Batch Update
-        </Button>
-        <Button size="small" color="error" startIcon={<DeleteIcon />} onClick={() => openDialog('delete')} disabled={selectedIds.length === 0}>
+
+        <Button
+          variant="outlined"
+          size="small"
+          color="error"
+          disabled={selectedIds.length === 0}
+          onClick={() => {
+            if (window.confirm('Are you sure you want to delete selected document(s)?')) {
+              setDocuments(prev => prev.filter(doc => !selectedIds.includes(doc.id)));
+              setSelectedIds([]);
+            }
+          }}
+        >
           Delete
+        </Button>
+
+        <Button
+          variant="outlined"
+          size="small"
+          color="primary"
+          onClick={handleBatchUpdate}
+          disabled={selectedIds.length === 0}
+        >
+          Batch Update
         </Button>
       </Stack>
 
-      {/* Documents Table */}
-      <Box
-        sx={{
-          width: '100%',
-          backgroundColor: '#fff',
-          p: 3,
-          borderRadius: 2,
-          boxShadow: 1,
-          boxSizing: 'border-box',
-          overflowX: 'auto', // added here for overflow horizontally
-        }}
-      >
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', mb: 2, px: 1 }}>
-          <Typography variant="h5" sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: '0.05em' }}>
-            Documents
-          </Typography>
-        </Box>
-
-        <TableContainer sx={{ width: '100%' }}>
-          <Table
-            size="small"
-            sx={{
-              minWidth: 850,
-              '& .MuiTableCell-root': {
-                fontSize: '0.95rem',
-                whiteSpace: 'nowrap',
-                padding: '8px 12px',
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                color: theme.palette.text.primary,
-              },
-              '& .MuiTableHead-root': {
-                backgroundColor: theme.palette.grey[100],
-              },
-              '& .MuiTableRow-root:hover': {
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
-            <TableHead>
+      {/* Table */}
+      <Paper>
+        <TableContainer>
+          <Table size="small">
+            <TableHead sx={{ backgroundColor: '#122E3E' }}>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ width: 50 }}>
+                <TableCell padding="checkbox" sx={{ color: '#fff' }}>
                   <Checkbox
-                    indeterminate={selectedIds.length > 0 && selectedIds.length < pageDocs.length}
-                    checked={pageDocs.length > 0 && selectedIds.length === pageDocs.length}
+                    checked={selectedIds.length === paginated.length && paginated.length > 0}
+                    indeterminate={selectedIds.length > 0 && selectedIds.length < paginated.length}
                     onChange={handleSelectAll}
-                    inputProps={{ 'aria-label': 'select all documents on page' }}
                   />
                 </TableCell>
-                <TableCell sx={{ minWidth: 150 }}>Document Name</TableCell>
-                <TableCell sx={{ minWidth: 150 }}>Document</TableCell>
-                <TableCell sx={{ minWidth: 120 }}>Category</TableCell>
-                <TableCell sx={{ minWidth: 250 }}>Description</TableCell>
-                <TableCell sx={{ minWidth: 150 }}>Assigned To</TableCell>
-                <TableCell sx={{ minWidth: 150 }}>Teams</TableCell>
+                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Name</b></TableCell>
+                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Category</b></TableCell>
+                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Description</b></TableCell>
+                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Assigned To</b></TableCell>
+                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Teams</b></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {pageDocs.map((doc) => (
-                <TableRow
-                  key={doc.id}
-                  hover
-                  selected={selectedIds.includes(doc.id)}
-                  sx={{ cursor: 'pointer' }}
-                >
+              {paginated.map(doc => (
+                <TableRow key={doc.id} hover selected={selectedIds.includes(doc.id)}>
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={selectedIds.includes(doc.id)}
-                      onChange={() => handleRowSelect(doc.id)}
-                      inputProps={{ 'aria-labelledby': `doc-checkbox-${doc.id}` }}
+                      onChange={() => handleSelectOne(doc.id)}
                     />
                   </TableCell>
-                  <TableCell component="th" scope="row">{doc.name}</TableCell>
-                  <TableCell>{doc.name}</TableCell>
-                  <TableCell>{doc.category}</TableCell>
-                  <TableCell sx={{ whiteSpace: 'normal' }}>{doc.description}</TableCell>
-                  <TableCell>{doc.assignedTo.join(', ')}</TableCell>
-                  <TableCell>{doc.teams.join(', ')}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{doc.name}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{doc.category}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{doc.description}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{doc.assignedTo.join(', ')}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{doc.teams.join(', ')}</TableCell>
                 </TableRow>
               ))}
-              {pageDocs.length === 0 && (
+              {paginated.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
-                    No documents found.
-                  </TableCell>
+                  <TableCell colSpan={6} align="center">No records found.</TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
-          <TablePagination
-            component="div"
-            count={filteredDocs.length}
+        {/* Pagination */}
+        <Box mt={2} display="flex" justifyContent="flex-end">
+          <Pagination
+            count={Math.ceil(filtered.length / rowsPerPage)}
             page={page}
-            onPageChange={(_, p) => setPage(p)}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[]}
-            sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }}
+            onChange={setPage}
+            size="small"
           />
         </Box>
-      </Box>
+      </Paper>
 
-      {/* Create / Modify Dialog */}
-      {(dialogType === 'create' || dialogType === 'modify') && (
-        <Dialog open onClose={closeDialog} fullWidth maxWidth="sm">
-          <DialogTitle>{dialogType === 'create' ? 'Create Document' : 'Modify Document'}</DialogTitle>
-          <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField
-              label="Document Name"
-              fullWidth
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              autoFocus
-              size="small"
-            />
-            <TextField
-              label="Category"
-              fullWidth
-              value={form.category}
-              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-              size="small"
-            />
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={3}
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              size="small"
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={closeDialog}>Cancel</Button>
-            <Button variant="contained" disabled={!form.name || !form.category} onClick={dialogType === 'create' ? handleCreate : handleModify}>
-              Submit
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
-
-      {/* Batch Update Dialog */}
-      {dialogType === 'batch' && (
-        <Dialog open onClose={closeDialog} fullWidth maxWidth="sm">
-          <DialogTitle>Batch Update</DialogTitle>
-          <DialogContent dividers>
-            <TextField
-              label="New Teams (comma separated)"
-              fullWidth
-              value={form.teams.join(', ')}
-              onChange={(e) => setForm((f) => ({ ...f, teams: e.target.value.split(',').map(s => s.trim()) }))}
-              helperText="Apply to selected documents"
-              size="small"
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={closeDialog}>Cancel</Button>
-            <Button variant="contained" onClick={handleBatchUpdate}>Submit</Button>
-          </DialogActions>
-        </Dialog>
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      {dialogType === 'delete' && (
-        <Dialog open onClose={closeDialog} maxWidth="xs">
-          <DialogTitle>Delete Confirmation</DialogTitle>
-          <DialogContent dividers>
-            <Typography>Are you sure you want to delete the selected record(s)?</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={closeDialog}>Cancel</Button>
-            <Button variant="contained" color="error" onClick={handleDelete}>Confirm</Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      {/* Dialog for Create & Modify */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {dialogType === 'create' ? 'Create Document' : 'Modify Document'}
+          <IconButton onClick={() => setOpenDialog(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            label="Name"
+            fullWidth
+            margin="dense"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
+          <TextField
+            label="Category"
+            fullWidth
+            margin="dense"
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+          />
+          <TextField
+            label="Description"
+            fullWidth
+            margin="dense"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          />
+          <TextField
+            label="Assigned To (comma separated)"
+            fullWidth
+            margin="dense"
+            value={formData.assignedTo.join(', ')}
+            onChange={(e) =>
+              setFormData({ ...formData, assignedTo: e.target.value.split(',').map(s => s.trim()) })
+            }
+          />
+          <TextField
+            label="Teams (comma separated)"
+            fullWidth
+            margin="dense"
+            value={formData.teams.join(', ')}
+            onChange={(e) =>
+              setFormData({ ...formData, teams: e.target.value.split(',').map(s => s.trim()) })
+            }
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleDialogSave}>Save</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
-}
+};
 
 export default DocumentCentre;

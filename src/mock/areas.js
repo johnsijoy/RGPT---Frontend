@@ -1,0 +1,31 @@
+const areas = [
+  { name: 'Mangalore', city: 'Mangalore', state: 'Karnataka', country: 'India' },
+  { name: 'Indra Nagar', city: 'Nashik', state: 'Maharashtra', country: 'India' },
+  { name: 'Kanchangaon', city: 'Thane', state: 'Maharashtra', country: 'India' },
+  { name: 'Satapati Road', city: 'Palghar', state: 'Maharashtra', country: 'India' },
+  { name: 'NH-8 Mumbai Ahmedabad Highway', city: 'Palghar', state: 'Maharashtra', country: 'India' },
+  { name: 'Hindupur', city: 'Anantapur', state: 'Andhra Pradesh', country: 'India' },
+  { name: 'Meydan', city: 'Dubai', state: 'Dubai', country: 'Dubai, UAE' },
+  { name: 'JALALABAD', city: 'Ghaziabad', state: 'Uttar Pradesh', country: 'India' },
+  { name: 'Neravanda House Bangalore', city: 'Bangalore', state: 'Karnataka', country: 'India' },
+  { name: 'INS Shivaji', city: 'Pune', state: 'Maharashtra', country: 'India' },
+  { name: 'Downtown', city: 'Dubai', state: 'Dubai', country: 'Dubai, UAE' },
+  { name: 'Untkhana', city: 'Nagpur', state: 'Maharashtra', country: 'India' },
+  { name: 'Sector - 35, Kamothe', city: 'Navi Mumbai', state: 'Maharashtra', country: 'India' },
+  { name: 'Sector-32A', city: 'Karnal', state: 'Haryana', country: 'India' },
+  { name: 'Diva East', city: 'Mumbai', state: 'Maharashtra', country: 'India' },
+  { name: 'New Dombivli', city: 'Navi Mumbai', state: 'Maharashtra', country: 'India' },
+  { name: 'Vadgaon Maval', city: 'Pune', state: 'Maharashtra', country: 'India' },
+  { name: 'Sector 143B', city: 'Greater Noida', state: 'Uttar Pradesh', country: 'India' },
+  { name: '143B', city: 'Greater Noida', state: 'Uttar Pradesh', country: 'India' },
+  { name: 'Madhwapurvasapalle', city: 'Bangalore', state: 'Karnataka', country: 'India' },
+  { name: 'Sector 21', city: 'Noida', state: 'Uttar Pradesh', country: 'India' },
+  { name: 'DLF Phase 2', city: 'Gurgaon', state: 'Haryana', country: 'India' },
+  { name: 'Whitefield', city: 'Bangalore', state: 'Karnataka', country: 'India' },
+  { name: 'Andheri East', city: 'Mumbai', state: 'Maharashtra', country: 'India' },
+  { name: 'Kothrud', city: 'Pune', state: 'Maharashtra', country: 'India' },
+  { name: 'Abu Dhabi Industrial Area', city: 'Abu Dhabi', state: 'Abu Dhabi', country: 'UAE' },
+  { name: 'Gachibowli', city: 'Hyderabad', state: 'Telangana', country: 'India' }
+];
+
+export default areas;

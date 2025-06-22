@@ -1,9 +1,13 @@
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import Login from './pages/auth/Login';
-import Dashboard from './pages/Dashboard';
-import Layout from './components/layout/Layout';
 import { useAuth } from './context/AuthContext';
+
+// Auth
+import Login from './pages/auth/Login';
+
+// Layout
+import Layout from './components/layout/Layout';
+import Dashboard from './pages/Dashboard';
 
 // Activities
 import ActivitiesList from './pages/activities/ActivitiesList';
@@ -29,11 +33,32 @@ import ProjectSetupForm from './pages/project-setup/ProjectSetupForm';
 import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
+
+import WebsiteAreasDetails from './pages/setup/website-areas/WebsiteAreasDetails';
+import SlabRateDetails from './pages/setup/slab-rate/SlabRateDetails';
 import DocumentCentre from './pages/setup/DocumentCentre';
+import Organisation from './pages/setup/Organisation';
+import WebsitePanel from './pages/setup/WebsitePanel';
+import VirtualNumber from './pages/setup/VirtualNumber';
 import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
-import Organisation from './pages/setup/Organisation'; // ✅
+import Areas from './pages/setup/areas'; // Make sure filename is exactly areas.jsx
+import Localities from './pages/setup/localities'; // Make sure filename is exactly localities.jsx
+
+// Website Cities
+import WebsiteCitiesList from './pages/setup/websitecities/WebsiteCitiesList';
+import WebsiteCitiesForm from './pages/setup/websitecities/WebsiteCitiesForm';
+import WebsiteCitiesDetails from './pages/setup/websitecities/WebsiteCitiesDetails';
+
+// Website States
+import WebsiteStatesList from './pages/setup/websitestates/WebsiteStatesList';
+import WebsiteStatesForm from './pages/setup/websitestates/WebsiteStatesForm';
+import WebsiteStatesDetails from './pages/setup/websitestates/WebsiteStatesDetails';
+
+// User Management
+import UserManagement from './pages/admin/UserManagement';
+
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -48,15 +73,17 @@ const PublicRoute = () => {
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public Routes */}
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<Login />} />
       </Route>
 
+      {/* Private Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
 
-          {/* Activities Routes */}
+          {/* Activities */}
           <Route path="activities">
             <Route index element={<ActivitiesList />} />
             <Route path=":id" element={<ActivityDetails />} />
@@ -64,7 +91,7 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ActivityForm />} />
           </Route>
 
-          {/* Leads Routes */}
+          {/* Leads */}
           <Route path="leads">
             <Route index element={<LeadsList />} />
             <Route path=":id" element={<LeadDetails />} />
@@ -72,7 +99,7 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<LeadForm />} />
           </Route>
 
-          {/* Contacts Routes */}
+          {/* Contacts */}
           <Route path="contacts">
             <Route index element={<ContactsList />} />
             <Route path=":id" element={<ContactDetails />} />
@@ -80,7 +107,7 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ContactForm />} />
           </Route>
 
-          {/* Project Setup Routes */}
+          {/* Project Setup */}
           <Route path="project-setup">
             <Route index element={<ProjectSetupList />} />
             <Route path=":id" element={<ProjectSetupDetails />} />
@@ -88,23 +115,50 @@ const AppRoutes = () => {
             <Route path="edit/:id" element={<ProjectSetupForm />} />
           </Route>
 
-          {/* Setup Routes */}
+          {/* Setup */}
           <Route path="setup">
             <Route index element={<SetupList />} />
             <Route path=":id" element={<SetupDetails />} />
             <Route path="new" element={<SetupForm />} />
             <Route path="edit/:id" element={<SetupForm />} />
+
+            {/* Setup Subsections */}
+            <Route path="website-areas" element={<WebsiteAreasDetails />} />
+            <Route path="slab-rate" element={<SlabRateDetails />} />
             <Route path="document-centre" element={<DocumentCentre />} />
+            <Route path="organisation" element={<Organisation />} />
+            <Route path="website-panel" element={<WebsitePanel />} />
+            <Route path="virtual-number" element={<VirtualNumber />} />
             <Route path="countries" element={<Countries />} />
-            {/* New States and Cities Pages */}
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
-           <Route path="organisation" element={<Organisation />} />
+            <Route path="areas" element={<Areas />} />
+            <Route path="localities" element={<Localities />} />
+            {/* Website Cities */}
+            <Route path="website-cities">
+              <Route index element={<WebsiteCitiesList />} />
+              <Route path="new" element={<WebsiteCitiesForm />} />
+              <Route path=":id" element={<WebsiteCitiesDetails />} />
+            </Route>
+
+            {/* Website States */}
+            <Route path="website-states">
+              <Route index element={<WebsiteStatesList />} />
+              <Route path="new" element={<WebsiteStatesForm />} />
+              <Route path="edit/:id" element={<WebsiteStatesForm />} />
+              <Route path=":id" element={<WebsiteStatesDetails />} />
+            </Route>
           </Route>
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />} />
+      {/* Catch-all route */}
+      <Route
+        path="*"
+        element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
+      />
+      
+      <Route path="/admin/usermanagement" element={<UserManagement />} />
     </Routes>
   );
 };
