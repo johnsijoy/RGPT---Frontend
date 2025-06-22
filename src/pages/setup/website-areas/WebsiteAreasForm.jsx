@@ -7,6 +7,28 @@ import {
   Button,
 } from '@mui/material';
 
+const smallerInputSx = {
+  '& .MuiInputBase-root': {
+    fontSize: '0.75rem',
+    minHeight: '28px',
+    paddingTop: '4px',
+    paddingBottom: '4px',
+    '& .MuiOutlinedInput-input': {
+      padding: '4px 8px',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    fontSize: '0.75rem',
+    top: -8,
+    left: '0px',
+    '&.MuiInputLabel-shrink': {
+      top: 0,
+      transform: 'translate(14px, -7px) scale(0.75) !important',
+      transformOrigin: 'top left',
+    },
+  },
+};
+
 export default function WebsiteAreasForm({ initialData = {}, onCancel }) {
   const [formData, setFormData] = useState({
     masterArea: '',
@@ -33,7 +55,7 @@ export default function WebsiteAreasForm({ initialData = {}, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Submitted Website Area:', formData);
-    onCancel();
+    onCancel(); 
   };
 
   return (
@@ -50,6 +72,7 @@ export default function WebsiteAreasForm({ initialData = {}, onCancel }) {
             value={formData.masterArea}
             onChange={handleChange('masterArea')}
             required
+            sx={smallerInputSx}
           />
           <TextField
             label="Website Area Name"
@@ -58,6 +81,7 @@ export default function WebsiteAreasForm({ initialData = {}, onCancel }) {
             value={formData.name}
             onChange={handleChange('name')}
             required
+            sx={smallerInputSx}
           />
           <TextField
             label="City"
@@ -66,6 +90,7 @@ export default function WebsiteAreasForm({ initialData = {}, onCancel }) {
             value={formData.city}
             onChange={handleChange('city')}
             required
+            sx={smallerInputSx}
           />
           <TextField
             label="Latitude"
@@ -73,6 +98,7 @@ export default function WebsiteAreasForm({ initialData = {}, onCancel }) {
             fullWidth
             value={formData.latitude}
             onChange={handleChange('latitude')}
+            sx={smallerInputSx}
           />
           <TextField
             label="Longitude"
@@ -80,13 +106,24 @@ export default function WebsiteAreasForm({ initialData = {}, onCancel }) {
             fullWidth
             value={formData.longitude}
             onChange={handleChange('longitude')}
+            sx={smallerInputSx}
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button variant="contained" color="success" type="submit">
+            <Button
+              variant="contained"
+              type="submit"
+              sx={{
+                textTransform: 'none',
+                backgroundColor: '#162F40',
+                '&:hover': {
+                  backgroundColor: '#122E3E',
+                },
+              }}
+            >
               Submit
             </Button>
-            <Button variant="outlined" color="error" onClick={onCancel}>
+            <Button variant="outlined" color="error" onClick={onCancel} sx={{ textTransform: 'none' }}>
               Cancel
             </Button>
           </Box>
