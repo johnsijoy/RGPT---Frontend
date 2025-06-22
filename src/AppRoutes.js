@@ -43,18 +43,17 @@ import VirtualNumber from './pages/setup/VirtualNumber';
 import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
+
+import WebsiteStates from './pages/setup/WebsiteStates';
+import WebsiteCities from './pages/setup/WebsiteCities';
+
+
+
 import Areas from './pages/setup/areas'; // Make sure filename is exactly areas.jsx
 import Localities from './pages/setup/localities'; // Make sure filename is exactly localities.jsx
 
-// Website Cities
-import WebsiteCitiesList from './pages/setup/websitecities/WebsiteCitiesList';
-import WebsiteCitiesForm from './pages/setup/websitecities/WebsiteCitiesForm';
-import WebsiteCitiesDetails from './pages/setup/websitecities/WebsiteCitiesDetails';
 
-// Website States
-import WebsiteStatesList from './pages/setup/websitestates/WebsiteStatesList';
-import WebsiteStatesForm from './pages/setup/websitestates/WebsiteStatesForm';
-import WebsiteStatesDetails from './pages/setup/websitestates/WebsiteStatesDetails';
+
 
 // User Management
 import UserManagement from './pages/admin/UserManagement';
@@ -124,6 +123,8 @@ const AppRoutes = () => {
 
             {/* Setup Subsections */}
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
+            <Route path="website-states" element={<WebsiteStates />} />
+            <Route path="website-cities" element={<WebsiteCities />} />
             <Route path="slab-rate" element={<SlabRateDetails />} />
             <Route path="document-centre" element={<DocumentCentre />} />
             <Route path="organisation" element={<Organisation />} />
@@ -132,6 +133,7 @@ const AppRoutes = () => {
             <Route path="countries" element={<Countries />} />
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
+
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
             {/* Website Cities */}
