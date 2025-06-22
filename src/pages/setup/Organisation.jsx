@@ -8,7 +8,6 @@ import {
 import DescriptionIcon from '@mui/icons-material/Description';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
 import UpdateIcon from '@mui/icons-material/Update';
 import Breadcrumbs from '../../components/common/Breadcrumbs';
 import Pagination from '../../components/common/Pagination';
@@ -97,27 +96,26 @@ const Organisation = () => {
       {/* Top control layout */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', alignItems: 'flex-start', mb: 2 }}>
         {/* Left buttons - Modify & Batch */}
-        <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<EditIcon />}
-            disabled={selectedItems.length !== 1}
-            sx={{ fontSize: '0.75rem', textTransform: 'none' }}
-            onClick={handleEdit}
-          >
-            Modify
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<UpdateIcon />}
-            disabled
-            sx={{ fontSize: '0.75rem', textTransform: 'none' }}
-          >
-            Batch Update
-          </Button>
-        </Box>
+        {/* Left buttons - Modify & Batch */}
+<Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+  <Button
+    variant="outlined"
+    size="small"
+    disabled={selectedItems.length !== 1}
+    sx={{ fontSize: '0.75rem', textTransform: 'none' }}
+    onClick={handleEdit}
+  >
+    Modify
+  </Button>
+  <Button
+    variant="outlined"
+    size="small"
+    disabled
+    sx={{ fontSize: '0.75rem', textTransform: 'none' }}
+  >
+    Batch Update
+  </Button>
+</Box>
 
         {/* Right controls - Search, Filter, Export, Create */}
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
