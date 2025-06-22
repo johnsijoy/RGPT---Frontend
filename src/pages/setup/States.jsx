@@ -1,186 +1,261 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, TextField, Button, Dialog, DialogTitle,
-  DialogContent, DialogActions, Table, TableHead, TableBody, TableRow,
-  TableCell, TableContainer, Paper, TableSortLabel, MenuItem, Select,
-  FormControl, InputLabel, Checkbox, IconButton, Chip
+  Box, Typography, Table, TableContainer, TableHead, TableRow, TableCell,
+  TableBody, Paper, TextField, Checkbox, Button, IconButton, InputAdornment,
+  Dialog, DialogTitle, DialogContent, DialogActions, Stack
 } from '@mui/material';
+
+import SearchIcon from '@mui/icons-material/Search';
 import DescriptionIcon from '@mui/icons-material/Description';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import * as XLSX from 'xlsx';
 
-const mockStates = [
-  { id: 1, stateId: 'S001', name: 'Maharashtra', description: 'Western state in India', country: 'India', status: 'Active' },
-  { id: 2, stateId: 'S002', name: 'California', description: 'West coast state in USA', country: 'USA', status: 'Inactive' },
-  { id: 3, stateId: 'S003', name: 'Karnataka', description: 'Southern state in India', country: 'India', status: 'Active' }
-];
+import mockStates from '../../mock/states';
+import Pagination from '../../components/common/Pagination';
+import Breadcrumbs from '../../components/common/Breadcrumbs';
 
 const States = () => {
-  const [open, setOpen] = useState(false);
   const [states, setStates] = useState(mockStates);
-  const [formData, setFormData] = useState({ id: null, stateId: '', name: '', description: '', country: '', status: 'Active' });
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [sortConfig, setSortConfig] = useState({ key: 'stateId', direction: 'asc' });
   const [selectedIds, setSelectedIds] = useState([]);
-
-  const handleSort = (key) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  };
-
-  const sortedStates = [...states].sort((a, b) => {
-    const valA = a[sortConfig.key]?.toLowerCase?.() || a[sortConfig.key];
-    const valB = b[sortConfig.key]?.toLowerCase?.() || b[sortConfig.key];
-    if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-    if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-    return 0;
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    id: null, stateId: '', name: '', description: '', country: '', status: ''
   });
 
-  const filtered = sortedStates.filter(state =>
-    Object.values(state).some(val =>
-      String(val).toLowerCase().includes(search.toLowerCase())
-    ) && (statusFilter === 'All' || state.status === statusFilter)
+  const rowsPerPage = 25;
+
+  const categories = Array.from(new Set(states.map(s => s.country)));
+  const statusOptions = Array.from(new Set(states.map(s => s.status)));
+
+  const filtered = states.filter(s =>
+    Object.values(s).some(val => String(val).toLowerCase().includes(search.toLowerCase()))
   );
 
-  const handleSubmit = () => {
-    if (formData.id) {
-      setStates(prev => prev.map(s => s.id === formData.id ? formData : s));
-      setSelectedIds([]);
-    } else {
-      setStates([...states, { ...formData, id: Date.now() }]);
-    }
-    setFormData({ id: null, stateId: '', name: '', description: '', country: '', status: 'Active' });
-    setOpen(false);
+  const paginated = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  const handleSelectAll = (e) => {
+    setSelectedIds(e.target.checked ? paginated.map(s => s.id) : []);
   };
 
-  const handleEdit = () => {
-    if (selectedIds.length !== 1) return alert('Select one row to edit');
-    const state = states.find(s => s.id === selectedIds[0]);
-    if (state) {
-      setFormData(state);
-      setOpen(true);
-    }
-  };
-
-  const handleDelete = () => {
-    if (selectedIds.length === 0) return alert('Select at least one row to delete');
-    const updated = states.filter(s => !selectedIds.includes(s.id));
-    setStates(updated);
-    setSelectedIds([]);
-  };
-
-  const handleCheckboxChange = (id) => {
+  const handleSelectOne = (id) => {
     setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
 
+  const handleOpenForm = (type) => {
+    if (type === 'edit' && selectedIds.length !== 1) {
+      return alert('Select exactly one row to edit');
+    }
+    if (type === 'edit') {
+      const sel = states.find(s => s.id === selectedIds[0]);
+      setFormData(sel);
+    }
+    setOpen(true);
+  };
+
+  const handleDeleteBatch = () => {
+    if (selectedIds.length === 0) {
+      return alert('Select at least one row to delete');
+    }
+    if (window.confirm(`Delete ${selectedIds.length} record(s)?`)) {
+      setStates(prev => prev.filter(s => !selectedIds.includes(s.id)));
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSave = () => {
+    if (!formData.stateId || !formData.name) {
+      return alert('Fill required fields (State ID, Name)');
+    }
+    if (formData.id) {
+      setStates(prev => prev.map(s => (s.id === formData.id ? formData : s)));
+    } else {
+      setStates(prev => [...prev, { ...formData, id: Date.now() }]);
+    }
+    setSelectedIds([]);
+    setFormData({ id: null, stateId: '', name: '', description: '', country: '', status: '' });
+    setOpen(false);
+  };
+
   const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(filtered);
+    const ws = XLSX.utils.json_to_sheet(filtered.map(({ id, ...rest }) => rest));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'States');
     XLSX.writeFile(wb, 'States_List.xlsx');
   };
 
+  useEffect(() => setPage(1), [search]);
+
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2, bgcolor: '#fff', borderRadius: 2 }}>
+      <Breadcrumbs />
+
+      {/* Header */}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600, color: '#134ca7' }}>States</Typography>
-        <TextField size="small" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Status</InputLabel>
-          <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} label="Status">
-            <MenuItem value="All">All</MenuItem>
-            <MenuItem value="Active">Active</MenuItem>
-            <MenuItem value="Inactive">Inactive</MenuItem>
-          </Select>
-        </FormControl>
-        <Button size="small" variant="outlined" onClick={handleEdit}>Edit</Button>
-        <Button size="small" variant="outlined" color="error" onClick={handleDelete}>Delete</Button>
-        <Button size="small" variant="contained" sx={{ bgcolor: '#134ca7' }} onClick={() => setOpen(true)}>Create</Button>
-        <IconButton onClick={exportToExcel} color="primary">
-          <DescriptionIcon />
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>States</Typography>
+
+
+        <TextField
+          size="small"
+          placeholder="Search..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          sx={{ minWidth: 160, '& .MuiInputBase-root': { fontSize: '0.75rem', minHeight: '28px' } }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            )
+          }}
+        />
+
+        <IconButton size="small" sx={{ color: 'green' }} title="Export to Excel" onClick={exportToExcel}>
+          <DescriptionIcon fontSize="medium" />
         </IconButton>
+
+        <Button
+          variant="contained"
+          size="small"
+          sx={{
+            bgcolor: '#122E3E',
+            textTransform: 'none',
+            fontSize: '0.75rem',
+            padding: '4px 10px'
+          }}
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenForm('create')}
+        >
+          Create
+        </Button>
       </Box>
 
-      <TableContainer component={Paper} elevation={1}>
-        <Table size="small">
-          <TableHead sx={{ backgroundColor: '#162F40' }}>
-            <TableRow>
-              <TableCell padding="checkbox" sx={{ color: '#fff' }}></TableCell>
-              {['stateId', 'name', 'description', 'country', 'status'].map((col) => (
-                <TableCell key={col} sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>
-                  <TableSortLabel
-                    active={sortConfig.key === col}
-                    direction={sortConfig.key === col ? sortConfig.direction : 'asc'}
-                    onClick={() => handleSort(col)}
-                    sx={{ color: '#fff !important', '& .MuiTableSortLabel-icon': { color: '#fff !important' } }}
-                  >
-                    {col.charAt(0).toUpperCase() + col.slice(1)}
-                  </TableSortLabel>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.length > 0 ? filtered.map((state) => (
-              <TableRow key={state.id}>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    size="small"
-                    checked={selectedIds.includes(state.id)}
-                    onChange={() => handleCheckboxChange(state.id)}
-                  />
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>{state.stateId}</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>{state.name}</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>{state.description}</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>{state.country}</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>
-                  <Chip
-                    label={state.status}
-                    size="small"
-                    sx={{
-                      backgroundColor: state.status === 'Active' ? '#d4edda' : '#f8d7da',
-                      color: state.status === 'Active' ? '#155724' : '#721c24',
-                      fontWeight: 500
-                    }}
-                  />
-                </TableCell>
-              </TableRow>
-            )) : (
-              <TableRow>
-                <TableCell colSpan={6} align="center">
-                  <Typography variant="body2" sx={{ py: 2 }}>
-                    No records found.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {/* Actions bar */}
+      <Stack direction="row" spacing={1} mb={2}>
+        <Button
+          variant="outlined"
+          size="small"
+          disabled={selectedIds.length !== 1}
+          onClick={() => handleOpenForm('edit')}
+        >
+          Modify
+        </Button>
+        <Button
+          variant="outlined"
+          size="small"
+          color="error"
+          disabled={selectedIds.length === 0}
+          onClick={handleDeleteBatch}
+        >
+          Delete
+        </Button>
+      </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ bgcolor: '#f5faff', fontWeight: 600 }}>{formData.id ? 'Edit State' : 'Create State'}</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField label="State ID" value={formData.stateId} onChange={e => setFormData({ ...formData, stateId: e.target.value })} fullWidth size="small" />
-          <TextField label="State Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} fullWidth size="small" />
-          <TextField label="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} fullWidth size="small" />
-          <TextField label="Country" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} fullWidth size="small" />
-          <FormControl fullWidth size="small">
-            <InputLabel>Status</InputLabel>
-            <Select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} label="Status">
-              <MenuItem value="Active">Active</MenuItem>
-              <MenuItem value="Inactive">Inactive</MenuItem>
-            </Select>
-          </FormControl>
+      {/* Table */}
+      <Paper>
+        <TableContainer>
+          <Table size="small">
+            <TableHead sx={{ bgcolor: '#122E3E' }}>
+              <TableRow>
+                <TableCell padding="checkbox" sx={{ color: '#fff' }}>
+                  <Checkbox
+                    checked={selectedIds.length === paginated.length && paginated.length > 0}
+                    indeterminate={selectedIds.length > 0 && selectedIds.length < paginated.length}
+                    onChange={handleSelectAll}
+                  />
+                </TableCell>
+                {['stateId', 'name', 'description', 'country', 'status'].map(col => (
+                  <TableCell key={col} sx={{ color: '#fff', fontSize: '0.8rem' }}>
+                    {col.charAt(0).toUpperCase() + col.slice(1)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginated.map(s => (
+                <TableRow key={s.id} hover selected={selectedIds.includes(s.id)}>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedIds.includes(s.id)}
+                      onChange={() => handleSelectOne(s.id)}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{s.stateId}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{s.name}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{s.description}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{s.country}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{s.status}</TableCell>
+                </TableRow>
+              ))}
+              {paginated.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No records found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Pagination */}
+        <Box mt={2} display="flex" justifyContent="flex-end">
+          <Pagination
+            count={Math.ceil(filtered.length / rowsPerPage)}
+            page={page}
+            onChange={setPage}
+            size="small"
+          />
+        </Box>
+      </Paper>
+
+      {/* Dialog */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {formData.id ? 'Modify State' : 'Create State'}
+          <IconButton size="small" onClick={() => setOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            label="State ID"
+            fullWidth margin="dense"
+            value={formData.stateId}
+            onChange={e => setFormData({ ...formData, stateId: e.target.value })}
+          />
+          <TextField
+            label="Name"
+            fullWidth margin="dense"
+            value={formData.name}
+            onChange={e => setFormData({ ...formData, name: e.target.value })}
+          />
+          <TextField
+            label="Description"
+            fullWidth margin="dense"
+            value={formData.description}
+            onChange={e => setFormData({ ...formData, description: e.target.value })}
+          />
+          <TextField
+            label="Country"
+            fullWidth margin="dense"
+            value={formData.country}
+            onChange={e => setFormData({ ...formData, country: e.target.value })}
+          />
+          <TextField
+            label="Status"
+            fullWidth margin="dense"
+            value={formData.status}
+            onChange={e => setFormData({ ...formData, status: e.target.value })}
+          />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button size="small" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button size="small" variant="contained" sx={{ bgcolor: '#134ca7' }} onClick={handleSubmit}>Save</Button>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSave}>Save</Button>
         </DialogActions>
       </Dialog>
     </Box>
