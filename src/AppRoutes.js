@@ -131,6 +131,9 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
+            
+
+            
           </Route>
         </Route>
       </Route>
@@ -144,7 +147,6 @@ const AppRoutes = () => {
 
       <Route path="/admin/usermanagement" element={<UserManagement />} />
     </Routes>
-  );
-};
+  );};
 
 export default AppRoutes;
