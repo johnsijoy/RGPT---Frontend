@@ -50,6 +50,9 @@ import WebsiteCities from './pages/setup/WebsiteCities';
 import Areas from './pages/setup/areas'; 
 import Localities from './pages/setup/localities'; 
 
+import Areas from './pages/setup/areas';
+import Localities from './pages/setup/localities';
+
 import UserManagement from './pages/admin/UserManagement';
 
 const PrivateRoute = () => {
@@ -128,10 +131,12 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
+
             {/* Website Cities */}
             <Route path="website-cities"></Route>
             {/* Website States */}
             <Route path="website-states"></Route>
+
           </Route>
         </Route>
       </Route>
@@ -141,6 +146,7 @@ const AppRoutes = () => {
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
+
 
       <Route path="/admin/usermanagement" element={<UserManagement />} />
     </Routes>
