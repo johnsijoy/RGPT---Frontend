@@ -231,7 +231,7 @@ const DocumentCentre = () => {
                       onClick={() => handleSort(col.key)}
                       sx={{
                         color: '#fff !important',
-                        '& .MuiTableSortLabel-icon': { color: '#fff' }
+                        '& .MuiTableSortLabel-icon': { color: '#fff !important' }
                       }}
                     >
                       <b>{col.label}</b>
@@ -279,13 +279,13 @@ const DocumentCentre = () => {
 
       {/* Dialogs */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
-        <DialogTitle sx={{ fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <DialogTitle sx={{ fontSize: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {dialogType === 'create' ? 'Create Document' : 'Modify Document'}
           <IconButton onClick={() => setOpenDialog(false)} size="small">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ gap: 2 }}>
+        <DialogContent  sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
           {['name', 'category', 'description'].map(field => (
             <TextField
               key={field}
@@ -296,7 +296,7 @@ const DocumentCentre = () => {
               value={formData[field]}
               onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
               sx={{
-                '& .MuiInputBase-input': { fontSize: '0.75rem' },
+                '& .MuiInputBase-input': { fontSize: '0.75rem', padding: '16.5px 14px' },
                 '& .MuiInputLabel-root': { fontSize: '0.75rem' }
               }}
             />
@@ -311,7 +311,7 @@ const DocumentCentre = () => {
               setFormData({ ...formData, assignedTo: e.target.value.split(',').map(s => s.trim()) })
             }
             sx={{
-              '& .MuiInputBase-input': { fontSize: '0.75rem' },
+              '& .MuiInputBase-input': { fontSize: '0.75rem' , padding: '16.5px 14px'},
               '& .MuiInputLabel-root': { fontSize: '0.75rem' }
             }}
           />
@@ -325,7 +325,7 @@ const DocumentCentre = () => {
               setFormData({ ...formData, teams: e.target.value.split(',').map(s => s.trim()) })
             }
             sx={{
-              '& .MuiInputBase-input': { fontSize: '0.75rem' },
+              '& .MuiInputBase-input': { fontSize: '0.75rem', padding: '16.5px 14px' },
               '& .MuiInputLabel-root': { fontSize: '0.75rem' }
             }}
           />
@@ -338,19 +338,19 @@ const DocumentCentre = () => {
       </Dialog>
 
       <Dialog open={showDeleteDialog} onClose={() => setShowDeleteDialog(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1rem', fontWeight: 600 }}>
           Confirm Delete
           <IconButton onClick={() => setShowDeleteDialog(false)} size="small">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          <Typography sx={{ fontSize: '0.75rem' }}>
+          <Typography sx={{fontSize: '0.875rem', mt: 1}}>
             Are you sure you want to delete the selected document(s)?
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" size="small" sx={{ bgcolor: '#122E3E' }} onClick={() => {
+          <Button variant="contained" size="small" sx={{ bgcolor: '#122E3E',color: '#fff',fontSize: '0.75rem',padding: '4px 12px',textTransform: 'none','&:hover': { bgcolor: '#0e1e2a' }  }} onClick={() => {
             setDocuments(prev => prev.filter(doc => !selectedIds.includes(doc.id)));
             setSelectedIds([]);
             setShowDeleteDialog(false);

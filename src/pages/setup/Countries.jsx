@@ -167,7 +167,7 @@ const Countries = () => {
                       sx={{
                         color: '#fff !important',
                         '& .MuiTableSortLabel-icon': { opacity: 0, color: '#fff' },
-                        '&:hover .MuiTableSortLabel-icon': { opacity: 1 }
+                        '&:hover .MuiTableSortLabel-icon': { opacity: 1, color: '#fff' }
                       }}
                     >
                       <b>{col.label}</b>
@@ -232,16 +232,13 @@ const Countries = () => {
               value={formData[field]}
               onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
               sx={{
-                '& .MuiInputBase-input': { fontSize: '0.75rem' },
+                '& .MuiInputBase-input': { fontSize: '0.75rem' , padding: '16.5px 14px' },
                 '& .MuiInputLabel-root': { fontSize: '0.75rem' }
               }}
             />
           ))}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} sx={{ fontSize: '0.75rem' }}>
-            Cancel
-          </Button>
           <Button
             variant="contained"
             onClick={handleCreate}
