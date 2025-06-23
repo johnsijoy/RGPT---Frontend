@@ -30,3 +30,4 @@ const Pagination = ({ count, page, onChange, size = 'small' }) => {
 };
 
 export default Pagination;
+
