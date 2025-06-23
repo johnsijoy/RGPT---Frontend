@@ -7,33 +7,17 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CloseIcon from '@mui/icons-material/Close';
-
 import * as XLSX from 'xlsx';
 import Breadcrumbs from '../../components/common/Breadcrumbs';
 import Pagination from '../../components/common/Pagination';
 import websiteStates from '../../mock/websitestates';
 
-const smallerInputSx = {
-  '& .MuiInputBase-root': {
-    fontSize: '0.75rem',
-    minHeight: '28px',
-    paddingTop: '4px',
-    paddingBottom: '4px',
-    '& .MuiOutlinedInput-input': {
-      padding: '4px 8px',
-    },
-    '& .MuiSelect-select': {
-      paddingTop: '4px !important',
-      paddingBottom: '4px !important',
-      minHeight: 'auto !important',
-      lineHeight: '1.2 !important',
+const smallerInputSx = {'& .MuiInputBase-root': {fontSize: '0.75rem',minHeight: '28px',paddingTop: '4px',paddingBottom: '4px',
+    '& .MuiOutlinedInput-input': {padding: '4px 8px',},
+    '& .MuiSelect-select': { paddingTop: '4px !important',paddingBottom: '4px !important',minHeight: 'auto !important',lineHeight: '1.2 !important',
     },
   },
-  '& .MuiInputLabel-root': {
-    fontSize: '0.75rem',
-    top: -8,
-    left: '0px',
-    '&.MuiInputLabel-shrink': {
+  '& .MuiInputLabel-root': {fontSize: '0.75rem',top: -8,left: '0px','&.MuiInputLabel-shrink': {
       top: 0,
       transform: 'translate(14px, -7px) scale(0.75) !important',
       transformOrigin: 'top left',
@@ -47,11 +31,10 @@ const smallerInputSx = {
 };
 
 const WebsiteStates = () => {
-  const [checkedStateId, setCheckedStateId] = useState(null);
+  const [checkedStateIds, setCheckedStateIds] = useState([]);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState('');
   const [formData, setFormData] = useState({ name: '', country: '' });
@@ -89,7 +72,14 @@ const WebsiteStates = () => {
   const paginatedData = sortedData.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
   const handleDialogOpen = (type) => {
-    setFormData({ name: '', country: '' });
+    if (type === 'edit') {
+      const selected = data.find((item) => item.id === checkedStateIds[0]);
+      if (selected) {
+        setFormData({ name: selected.name, country: selected.country, id: selected.id });
+      }
+    } else {
+      setFormData({ name: '', country: '' });
+    }
     setDialogType(type);
     setOpenDialog(true);
   };
@@ -97,7 +87,13 @@ const WebsiteStates = () => {
   const handleDialogClose = () => {
     setOpenDialog(false);
     setFormData({ name: '', country: '' });
-    setCheckedStateId(null);
+    setCheckedStateIds([]);
+  };
+
+  const handleDelete = () => {
+    setData(prev => prev.filter(state => !checkedStateIds.includes(state.id)));
+    setCheckedStateIds([]);
+    setOpenDeleteDialog(false);
   };
 
   const handleDialogSubmit = () => {
@@ -115,139 +111,179 @@ const WebsiteStates = () => {
   };
 
   return (
-    <Box sx={{ p: 3, width: '100%' }}>
+    <Box sx={{ p: 3, width: '100%', backgroundColor: '#fff', borderRadius: 2 }}>
       <Breadcrumbs />
-
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>Website States</Typography>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ minWidth: 160, ...smallerInputSx }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              )
-            }}
-          />
-
-          <FormControl size="xsmall" sx={{ minWidth: 160, ...smallerInputSx }}>
-            <InputLabel>Select a Query</InputLabel>
-            <Select
-              value={statusFilter}
-              label="Select a Query"
-              onChange={(e) => setStatusFilter(e.target.value)}
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>Website States</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => handleDialogOpen('edit')}
+              disabled={checkedStateIds.length !== 1}
+              sx={{
+                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '4px 10px',
+                textTransform: 'none',
+                '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' }
+              }}
             >
-              <MenuItem value=""><em>All States</em></MenuItem>
-              <MenuItem value="South">South India</MenuItem>
-              <MenuItem value="North">North India</MenuItem>
-              <MenuItem value="West">West India</MenuItem>
-            </Select>
-          </FormControl>
+              Modify
+            </Button>
 
-          <IconButton
-            size="small"
-            sx={{ color: 'green' }}
-            title="Export to Excel"
-            onClick={() => {
-              const exportData = data.map(({ id, ...rest }) => rest);
-              const ws = XLSX.utils.json_to_sheet(exportData);
-              const wb = XLSX.utils.book_new();
-              XLSX.utils.book_append_sheet(wb, ws, 'States');
-              XLSX.writeFile(wb, 'website_states.xlsx');
-            }}
-          >
-            <DescriptionIcon fontSize="medium" />
-          </IconButton>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setOpenDeleteDialog(true)}
+              disabled={checkedStateIds.length === 0}
+              sx={{
+                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '4px 10px',
+                textTransform: 'none',
+                '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' }
+              }}
+            >
+              Delete
+            </Button>
+          </Box>
 
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => handleDialogOpen('create')}
-            sx={{ bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '4px 10px', textTransform: 'none' }}
-          >
-            + Create
-          </Button>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
+            <TextField
+              variant="outlined"
+              size="small"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ minWidth: 160, fontSize: '0.75rem', ...smallerInputSx }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
+            />
+
+            <FormControl size="xsmall" sx={{ minWidth: 160, ...smallerInputSx }}>
+              <InputLabel>Select a Query</InputLabel>
+              <Select
+                value={statusFilter}
+                label="Select a Query"
+                sx={{ fontSize: '0.75rem' }}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      '& .MuiMenuItem-root': {
+                        fontSize: '0.75em'
+                      }
+                    }
+                  }
+                }}
+              >
+                <MenuItem value="" sx={{ fontSize: '0.75em' }}>All States</MenuItem>
+                <MenuItem value="South" sx={{ fontSize: '0.75em' }}>South India</MenuItem>
+                <MenuItem value="North" sx={{ fontSize: '0.75em' }}>North India</MenuItem>
+                <MenuItem value="West" sx={{ fontSize: '0.75em' }}>West India</MenuItem>
+              </Select>
+            </FormControl>
+
+            <IconButton
+              size="small"
+              sx={{ color: 'green' }}
+              title="Export to Excel"
+              onClick={() => {
+                const headers = [["Website State Name", "Country"]];
+                const rows = data.map(state => [state.name, state.country]);
+                const worksheet = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'States');
+                XLSX.writeFile(workbook, 'website_states.xlsx');
+              }}
+            >
+              <DescriptionIcon fontSize="medium" />
+            </IconButton>
+
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => handleDialogOpen('create')}
+              sx={{
+                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '4px 10px',
+                textTransform: 'none'
+              }}
+            >
+              + Create
+            </Button>
+          </Box>
         </Box>
-      </Box>
-
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => {
-            const selected = data.find((item) => item.id === checkedStateId);
-            if (selected) {
-              setFormData({ name: selected.name, country: selected.country, id: selected.id });
-              setDialogType('edit');
-              setOpenDialog(true);
-            }
-          }}
-          disabled={!checkedStateId}
-          sx={{ fontSize: '0.75rem', padding: '4px 10px', textTransform: 'none' }}
-        >
-          Modify
-        </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => setOpenDeleteDialog(true)}
-          disabled={!checkedStateId}
-          color="error"
-          sx={{ fontSize: '0.75rem', padding: '4px 10px', textTransform: 'none' }}
-        >
-          Delete
-        </Button>
       </Box>
 
       <TableContainer component={Paper}>
         <Table size="small">
-         <TableHead sx={{ backgroundColor: '#122E3E' }}>
-                     <TableRow>
-                       <TableCell padding="checkbox" />
-                       {["name",  "country"].map((key) => (
-                         <TableCell
-                           key={key}
-                           sx={{
-                             color: '#fff', fontSize: 13,
-                             '& .MuiTableSortLabel-root': { color: '#fff' },
-                            
-                             '& .MuiTableSortLabel-icon': { color: '#fff !important' },
-                           }}
-                         >
-                           <TableSortLabel
-                             active={sortConfig.key === key}
-                             direction={sortConfig.key === key ? sortConfig.direction : 'asc'}
-                             onClick={() => handleSort(key)}
-                           >
-                             {{ name: 'Website State Name',  country: 'Country' }[key]}
-                           </TableSortLabel>
-                         </TableCell>
-                       ))}
-                     </TableRow>
-                   </TableHead>
+          <TableHead sx={{ backgroundColor: '#122E3E' }}>
+            <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  size="small"
+                  sx={{ color: '#fff' }}
+                  checked={paginatedData.length > 0 && paginatedData.every((item) => checkedStateIds.includes(item.id))}
+                  indeterminate={checkedStateIds.length > 0 && checkedStateIds.length < paginatedData.length}
+                  onChange={(e) => {
+                    const currentPageIds = paginatedData.map((item) => item.id);
+                    if (e.target.checked) {
+                      setCheckedStateIds((prev) => [...new Set([...prev, ...currentPageIds])]);
+                    } else {
+                      setCheckedStateIds((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+                    }
+                  }}
+                />
+              </TableCell>
+              {["name", "country"].map((key) => (
+                <TableCell
+                  key={key}
+                  sx={{
+                    color: '#fff', fontSize: 13,
+                    '& .MuiTableSortLabel-root': { color: '#fff' },
+                    '& .MuiTableSortLabel-root:hover': { color: '#fff' },
+                    '& .MuiTableSortLabel-root.Mui-active': { color: '#fff' },
+                    '& .MuiTableSortLabel-icon': { color: '#fff !important' }
+                  }}
+                >
+                  <TableSortLabel
+                    active={sortConfig.key === key}
+                    direction={sortConfig.key === key ? sortConfig.direction : 'asc'}
+                    onClick={() => handleSort(key)}
+                  >
+                    {{ name: 'Website State Name', country: 'Country' }[key]}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
           <TableBody>
             {paginatedData.length > 0 ? (
-              paginatedData.map((state) => (
-                <TableRow key={state.id}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      size="small"
-                      checked={checkedStateId === state.id}
-                      onChange={() => setCheckedStateId(state.id)}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{state.name}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{state.country}</TableCell>
-                </TableRow>
-              ))
+              paginatedData.map((state) => {
+                const isChecked = checkedStateIds.includes(state.id);
+                return (
+                  <TableRow key={state.id}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        size="small"
+                        checked={isChecked}
+                        onChange={() => {
+                          setCheckedStateIds((prev) =>
+                            isChecked
+                              ? prev.filter((id) => id !== state.id)
+                              : [...prev, state.id]
+                          );
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem' }}>{state.name}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem' }}>{state.country}</TableCell>
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={3} align="center" sx={{ py: 2 }}>
@@ -263,6 +299,7 @@ const WebsiteStates = () => {
         <Pagination count={totalPages} page={page + 1} onChange={(p) => setPage(p - 1)} />
       </Box>
 
+      {/* Create/Edit Dialog */}
       <Dialog open={openDialog} onClose={handleDialogClose} fullWidth>
         <DialogTitle>
           <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -279,36 +316,43 @@ const WebsiteStates = () => {
             margin="dense"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            sx={{
+              fontSize: '0.75rem',
+              '& .MuiInputBase-input': { fontSize: '0.75rem' },
+              '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+            }}
           />
           <TextField
             label="Country"
+            fullWidth
             value={formData.country}
             onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-            fullWidth
-          />
+            sx={{fontSize: '0.75rem','& .MuiInputBase-input': { fontSize: '0.75rem' },'& .MuiInputLabel-root': { fontSize: '0.75rem' }}} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose} sx={{ color: 'red' }}>CANCEL</Button>
           <Button variant="contained" sx={{ bgcolor: '#122E3E', color: '#fff' }} onClick={handleDialogSubmit}>
             SAVE
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>Are you sure you want to delete this item?</DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1rem', fontWeight: 600 }}>
+          Confirm Delete
+          <IconButton onClick={() => setOpenDeleteDialog(false)} size="small">
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ fontSize: '0.875rem', mt: 1 }}>
+          Are you sure you want to delete selected state?
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
-            onClick={() => {
-              setData(data.filter((item) => item.id !== checkedStateId));
-              setCheckedStateId(null);
-              setOpenDeleteDialog(false);
-            }}
-            color="error"
+            onClick={handleDelete}
             variant="contained"
-          >
+            size="small"
+            sx={{bgcolor: '#122E3E',color: '#fff',fontSize: '0.75rem',padding: '4px 12px',textTransform: 'none','&:hover': { bgcolor: '#0e1e2a' }}}>
             Delete
           </Button>
         </DialogActions>
