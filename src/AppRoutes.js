@@ -129,6 +129,7 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
+ 
           </Route>
         </Route>
       </Route>
