@@ -47,17 +47,11 @@ import Cities from './pages/setup/Cities';
 import WebsiteStates from './pages/setup/WebsiteStates';
 import WebsiteCities from './pages/setup/WebsiteCities';
 
-
-
-import Areas from './pages/setup/areas'; // Make sure filename is exactly areas.jsx
-import Localities from './pages/setup/localities'; // Make sure filename is exactly localities.jsx
-
-
-
+import Areas from './pages/setup/areas';
+import Localities from './pages/setup/localities';
 
 // User Management
 import UserManagement from './pages/admin/UserManagement';
-
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -135,7 +129,7 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-           
+ 
           </Route>
         </Route>
       </Route>
@@ -145,7 +139,8 @@ const AppRoutes = () => {
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
-      
+
+      {/* Admin */}
       <Route path="/admin/usermanagement" element={<UserManagement />} />
     </Routes>
   );
