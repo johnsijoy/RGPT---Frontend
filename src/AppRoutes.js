@@ -121,7 +121,7 @@ const AppRoutes = () => {
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
             <Route path="website-states" element={<WebsiteStates />} />
             <Route path="website-cities" element={<WebsiteCities />} />
-            <Route path="slab-rate" element={<SlabRate />} /> {/* ✅ Updated route */}
+            <Route path="slab-rate" element={<SlabRate />} /> 
             <Route path="document-centre" element={<DocumentCentre />} />
             <Route path="organisation" element={<Organisation />} />
             <Route path="website-panel" element={<WebsitePanel />} />
@@ -131,12 +131,6 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-
-            {/* Website Cities */}
-            <Route path="website-cities"></Route>
-            {/* Website States */}
-            <Route path="website-states"></Route>
-
           </Route>
         </Route>
       </Route>
