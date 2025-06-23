@@ -36,6 +36,8 @@ import Breadcrumbs from '../../components/common/Breadcrumbs';
 import Pagination from '../../components/common/Pagination';
 import { websiteAreasMockData } from '../../mock/websiteareas';
 import * as XLSX from 'xlsx';
+const darkBlue = '#122E3E';
+const grayDisabled = '#B0B0B0';
 
 const smallerInputSx = {
   '& .MuiInputBase-root': {
@@ -156,12 +158,15 @@ function WebsiteAreasForm({ initialData = {}, onCancel, onSubmit }) {
             <Button
               variant="contained"
               type="submit"
+              size="small"
               sx={{
                 textTransform: 'none',
                 backgroundColor: '#162F40',
                 '&:hover': { backgroundColor: '#121f2a' },
-                fontSize: '0.875rem',
-                minWidth: 80,
+                fontSize: '0.75rem',
+                minWidth: 70,
+                height: 28,
+                padding: '4px 10px',
               }}
             >
               Save
@@ -347,55 +352,44 @@ export default function WebsiteAreas() {
         gap={1}
       >
         <Stack direction="row" spacing={1}>
-          <Button
-            onClick={handleEdit}
-            disabled={!isModifyEnabled}
-            variant="contained"
-            size="small"
-            sx={{
-              fontSize: '0.75rem',
-              textTransform: 'none',
-              padding: '4px 10px',
-              backgroundColor: isModifyEnabled ? '#162F40' : '#D8BFF7 !important',
-              color: isModifyEnabled ? '#fff' : '#162F40 !important',
-              pointerEvents: 'auto',
-              '&:hover': {
-                backgroundColor: isModifyEnabled ? '#121f2a' : '#D8BFF7 !important',
-              },
-              '&.Mui-disabled': {
-                backgroundColor: '#D8BFF7 !important',
-                color: '#162F40 !important',
-                opacity: 1,
-              },
-            }}
-          >
-            Modify
-          </Button>
-          <Button
-            onClick={openDeleteDialog}
-            disabled={!isDeleteEnabled}
-            variant="contained"
-            size="small"
-            sx={{
-              fontSize: '0.75rem',
-              textTransform: 'none',
-              padding: '4px 10px',
-              backgroundColor: isDeleteEnabled ? '#162F40' : '#D8BFF7 !important',
-              color: isDeleteEnabled ? '#fff' : '#162F40 !important',
-              pointerEvents: 'auto',
-              '&:hover': {
-                backgroundColor: isDeleteEnabled ? '#121f2a' : '#D8BFF7 !important',
-              },
-              '&.Mui-disabled': {
-                backgroundColor: '#D8BFF7 !important',
-                color: '#162F40 !important',
-                opacity: 1,
-              },
-            }}
-          >
-            Delete
-          </Button>
-        </Stack>
+  <Button
+    onClick={handleEdit}
+    disabled={!isModifyEnabled}
+    variant="contained"
+    size="small"
+    sx={{
+      fontSize: '0.75rem',
+      textTransform: 'none',
+      padding: '4px 10px',
+      backgroundColor: isModifyEnabled ? darkBlue : grayDisabled,
+      color: '#fff',
+      '&:hover': {
+        backgroundColor: isModifyEnabled ? '#0f1e2d' : grayDisabled,
+      },
+    }}
+  >
+    Modify
+  </Button>
+
+  <Button
+    onClick={openDeleteDialog}
+    disabled={!isDeleteEnabled}
+    variant="contained"
+    size="small"
+    sx={{
+      fontSize: '0.75rem',
+      textTransform: 'none',
+      padding: '4px 10px',
+      backgroundColor: isDeleteEnabled ? darkBlue : grayDisabled,
+      color: '#fff',
+      '&:hover': {
+        backgroundColor: isDeleteEnabled ? '#0f1e2d' : grayDisabled,
+      },
+    }}
+  >
+    Delete
+  </Button>
+</Stack>
 
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
           <TextField
@@ -579,6 +573,12 @@ export default function WebsiteAreas() {
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onClose={closeDeleteDialog}>
         <DialogTitle sx={{ m: 0, p: 2, position: 'relative' }}>
+          <Typography
+      variant="h6"
+    
+    >
+      Confirm Delete
+    </Typography>
           <IconButton
             aria-label="close"
             onClick={closeDeleteDialog}
@@ -593,7 +593,9 @@ export default function WebsiteAreas() {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent 
+        sx={{ borderTop: 'none'}}
+        >
           <Typography fontSize="0.875rem">
             Are you sure you want to delete {selectedIds.length} selected website area
             {selectedIds.length > 1 ? 's' : ''}?
