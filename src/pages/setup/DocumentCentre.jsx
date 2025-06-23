@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, TextField, Checkbox, Button,
-  InputAdornment, Select, MenuItem, IconButton, Stack, Tooltip,
+  InputAdornment, Select, MenuItem, IconButton, Tooltip,
   Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 
@@ -15,12 +15,7 @@ import * as XLSX from 'xlsx';
 
 import mockDocuments from '../../mock/DocumentCentre';
 import Pagination from '../../components/common/Pagination';
-
-const Breadcrumbs = () => (
-  <Typography variant="body2" sx={{ fontSize: '0.75rem', mb: 2 }}>
-    Home / Document Centre
-  </Typography>
-);
+import Breadcrumbs from '../../components/common/Breadcrumbs';
 
 const DocumentCentre = () => {
   const [documents, setDocuments] = useState(mockDocuments);
@@ -30,6 +25,7 @@ const DocumentCentre = () => {
   const [page, setPage] = useState(1);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -72,29 +68,10 @@ const DocumentCentre = () => {
       'Assigned To': doc.assignedTo.join(', '),
       Teams: doc.teams.join(', ')
     }));
-
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Documents');
     XLSX.writeFile(wb, 'DocumentCentre.xlsx');
-  };
-
-  const handleBatchUpdate = () => {
-    if (selectedIds.length === 0) {
-      alert('Select at least one record for batch update');
-      return;
-    }
-
-    setDocuments(prevDocs =>
-      prevDocs.map(doc =>
-        selectedIds.includes(doc.id)
-          ? { ...doc, category: 'Updated Category' }
-          : doc
-      )
-    );
-
-    alert(`Batch update applied to ${selectedIds.length} document(s)`);
-    setSelectedIds([]);
   };
 
   const handleDialogSave = () => {
@@ -110,124 +87,116 @@ const DocumentCentre = () => {
         )
       );
     }
-
     setOpenDialog(false);
-    setFormData({
-      name: '',
-      category: '',
-      description: '',
-      assignedTo: [],
-      teams: [],
-    });
+    setFormData({ name: '', category: '', description: '', assignedTo: [], teams: [] });
     setSelectedIds([]);
   };
 
   return (
     <Box sx={{ padding: 2, backgroundColor: '#fff', borderRadius: 2 }}>
       <Breadcrumbs />
+      <Typography variant="h6" sx={{ flexGrow: 1 }}>
+        Document Centre
+      </Typography>
 
-      {/* Header Actions */}
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>Document Centre</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', my: 2 }}>
+        {/* Left: Modify, Delete, Batch Update */}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ bgcolor: '#122E3E', fontSize: '0.75rem', textTransform: 'none' }}
+            disabled={selectedIds.length !== 1}
+            onClick={() => {
+              const selected = documents.find(doc => doc.id === selectedIds[0]);
+              setFormData({ ...selected });
+              setDialogType('modify');
+              setOpenDialog(true);
+            }}
+          >
+            Modify
+          </Button>
 
-        <TextField
-          variant="outlined"
-          size="small"
-          placeholder="Search..."
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 160, '& .MuiInputBase-root': { fontSize: '0.75rem', minHeight: '28px' } }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            )
-          }}
-        />
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ bgcolor: '#122E3E', fontSize: '0.75rem', textTransform: 'none' }}
+            disabled={selectedIds.length === 0}
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            Delete
+          </Button>
 
-        <Select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          size="small"
-          displayEmpty
-          sx={{ minWidth: 160, fontSize: '0.75rem' }}
-        >
-          <MenuItem value="">All Categories</MenuItem>
-          {categories.map(cat => (
-            <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-          ))}
-        </Select>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ bgcolor: '#122E3E', fontSize: '0.75rem', textTransform: 'none' }}
+            disabled
+          >
+            Batch Update
+          </Button>
+        </Box>
 
-        <Tooltip title="Export to Excel">
-          <IconButton size="small" sx={{ color: 'green' }} onClick={handleExport}>
-            <DescriptionIcon fontSize="medium" />
-          </IconButton>
-        </Tooltip>
+        {/* Right: Search, Filter, Create */}
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Search..."
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{
+              width: 160,
+              '& input': { fontSize: '0.75rem' }
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              )
+            }}
+          />
 
-        <Button
-          variant="contained"
-          size="small"
-          sx={{ bgcolor: '#122E3E', textTransform: 'none', fontSize: '0.75rem', padding: '4px 10px' }}
-          startIcon={<AddIcon />}
-          onClick={() => {
-            setFormData({
-              name: '',
-              category: '',
-              description: '',
-              assignedTo: [],
-              teams: [],
-            });
-            setDialogType('create');
-            setOpenDialog(true);
-          }}
-        >
-          Create
-        </Button>
+          <Select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            size="small"
+            displayEmpty
+            sx={{ width: 160, fontSize: '0.75rem' }}
+            MenuProps={{
+              PaperProps: {
+                sx: { fontSize: '0.75rem' }
+              }
+            }}
+          >
+            <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Categories</MenuItem>
+            {categories.map(cat => (
+              <MenuItem key={cat} value={cat} sx={{ fontSize: '0.75rem' }}>{cat}</MenuItem>
+            ))}
+          </Select>
+
+          <Tooltip title="Export to Excel">
+            <IconButton size="small" sx={{ color: 'green' }} onClick={handleExport}>
+              <DescriptionIcon fontSize="medium" />
+            </IconButton>
+          </Tooltip>
+
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ bgcolor: '#122E3E', textTransform: 'none', fontSize: '0.75rem' }}
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setFormData({ name: '', category: '', description: '', assignedTo: [], teams: [] });
+              setDialogType('create');
+              setOpenDialog(true);
+            }}
+          >
+            Create
+          </Button>
+        </Box>
       </Box>
 
-      {/* Modify/Delete/BatchUpdate */}
-      <Stack direction="row" spacing={1} mb={2}>
-        <Button
-          variant="outlined"
-          size="small"
-          disabled={selectedIds.length !== 1}
-          onClick={() => {
-            const selected = documents.find(doc => doc.id === selectedIds[0]);
-            setFormData({ ...selected });
-            setDialogType('modify');
-            setOpenDialog(true);
-          }}
-        >
-          Modify
-        </Button>
-
-        <Button
-          variant="outlined"
-          size="small"
-          color="error"
-          disabled={selectedIds.length === 0}
-          onClick={() => {
-            if (window.confirm('Are you sure you want to delete selected document(s)?')) {
-              setDocuments(prev => prev.filter(doc => !selectedIds.includes(doc.id)));
-              setSelectedIds([]);
-            }
-          }}
-        >
-          Delete
-        </Button>
-
-        <Button
-          variant="outlined"
-          size="small"
-          color="primary"
-          onClick={handleBatchUpdate}
-          disabled={selectedIds.length === 0}
-        >
-          Batch Update
-        </Button>
-      </Stack>
-
-      {/* Table */}
       <Paper>
         <TableContainer>
           <Table size="small">
@@ -240,11 +209,11 @@ const DocumentCentre = () => {
                     onChange={handleSelectAll}
                   />
                 </TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Name</b></TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Category</b></TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Description</b></TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Assigned To</b></TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Teams</b></TableCell>
+                {['Name', 'Category', 'Description', 'Assigned To', 'Teams'].map((header, idx) => (
+                  <TableCell key={idx} sx={{ color: '#fff', fontSize: '0.8rem' }}>
+                    <b>{header}</b>
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -265,14 +234,15 @@ const DocumentCentre = () => {
               ))}
               {paginated.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">No records found.</TableCell>
+                  <TableCell colSpan={6} align="center" sx={{ fontSize: '0.75rem' }}>
+                    No records found.
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
 
-        {/* Pagination */}
         <Box mt={2} display="flex" justifyContent="flex-end">
           <Pagination
             count={Math.ceil(filtered.length / rowsPerPage)}
@@ -283,58 +253,111 @@ const DocumentCentre = () => {
         </Box>
       </Paper>
 
-      {/* Dialog for Create & Modify */}
+      {/* Create/Modify Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <DialogTitle
+          sx={{
+            fontSize: '0.9rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
           {dialogType === 'create' ? 'Create Document' : 'Modify Document'}
           <IconButton onClick={() => setOpenDialog(false)} size="small">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
-          <TextField
-            label="Name"
-            fullWidth
-            margin="dense"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-          <TextField
-            label="Category"
-            fullWidth
-            margin="dense"
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          />
-          <TextField
-            label="Description"
-            fullWidth
-            margin="dense"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
+        <DialogContent dividers sx={{ gap: 2 }}>
+          {['name', 'category', 'description'].map(field => (
+            <TextField
+              key={field}
+              label={field.charAt(0).toUpperCase() + field.slice(1)}
+              fullWidth
+              size="small"
+              margin="dense"
+              value={formData[field]}
+              onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+              sx={{
+                '& .MuiInputBase-input': { fontSize: '0.75rem' },
+                '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+              }}
+              InputLabelProps={{ style: { fontSize: '0.75rem' } }}
+            />
+          ))}
+
           <TextField
             label="Assigned To (comma separated)"
             fullWidth
+            size="small"
             margin="dense"
             value={formData.assignedTo.join(', ')}
             onChange={(e) =>
               setFormData({ ...formData, assignedTo: e.target.value.split(',').map(s => s.trim()) })
             }
+            sx={{
+              '& .MuiInputBase-input': { fontSize: '0.75rem' },
+              '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+            }}
+            InputLabelProps={{ style: { fontSize: '0.75rem' } }}
           />
+
           <TextField
             label="Teams (comma separated)"
             fullWidth
+            size="small"
             margin="dense"
             value={formData.teams.join(', ')}
             onChange={(e) =>
               setFormData({ ...formData, teams: e.target.value.split(',').map(s => s.trim()) })
             }
+            sx={{
+              '& .MuiInputBase-input': { fontSize: '0.75rem' },
+              '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+            }}
+            InputLabelProps={{ style: { fontSize: '0.75rem' } }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleDialogSave}>Save</Button>
+          <Button variant="contained" size="small" sx={{ bgcolor: '#122E3E' }} onClick={handleDialogSave}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={showDeleteDialog} onClose={() => setShowDeleteDialog(false)} fullWidth maxWidth="xs">
+        <DialogTitle
+          sx={{
+            fontSize: '0.9rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          Confirm Delete
+          <IconButton onClick={() => setShowDeleteDialog(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography sx={{ fontSize: '0.75rem' }}>
+            Are you sure you want to delete the selected document(s)?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ bgcolor: '#122E3E' }}
+            onClick={() => {
+              setDocuments(prev => prev.filter(doc => !selectedIds.includes(doc.id)));
+              setSelectedIds([]);
+              setShowDeleteDialog(false);
+            }}
+          >
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -16,12 +16,7 @@ import {
 import * as XLSX from 'xlsx';
 import countriesData from '../../mock/Countries';
 import Pagination from '../../components/common/Pagination';
-
-const Breadcrumbs = () => (
-  <Typography variant="body2" sx={{ fontSize: '0.75rem', mb: 2 }}>
-    Home / Countries
-  </Typography>
-);
+import Breadcrumbs from '../../components/common/Breadcrumbs';
 
 const Countries = () => {
   const [countries, setCountries] = useState(countriesData);
@@ -78,7 +73,10 @@ const Countries = () => {
           size="small"
           placeholder="Search..."
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 160, '& .MuiInputBase-root': { fontSize: '0.75rem', minHeight: '28px' } }}
+          sx={{
+            minWidth: 160,
+            '& .MuiInputBase-root': { fontSize: '0.75rem', minHeight: '28px' }
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -93,11 +91,20 @@ const Countries = () => {
           onChange={(e) => setQuery(e.target.value)}
           size="small"
           displayEmpty
-          sx={{ minWidth: 160, fontSize: '0.75rem' }}
+          sx={{
+            minWidth: 160,
+            fontSize: '0.75rem',
+            '& .MuiSelect-select': { fontSize: '0.75rem' }
+          }}
+          MenuProps={{
+            PaperProps: {
+              sx: { fontSize: '0.75rem' }
+            }
+          }}
         >
-          <MenuItem value="">All Countries</MenuItem>
+          <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Countries</MenuItem>
           {countries.map(c => (
-            <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>
+            <MenuItem key={c.code} value={c.code} sx={{ fontSize: '0.75rem' }}>{c.name}</MenuItem>
           ))}
         </Select>
 
@@ -144,7 +151,9 @@ const Countries = () => {
               ))}
               {paginated.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} align="center">No records found.</TableCell>
+                  <TableCell colSpan={3} align="center" sx={{ fontSize: '0.75rem' }}>
+                    No records found.
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -164,7 +173,14 @@ const Countries = () => {
 
       {/* Create Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <DialogTitle
+          sx={{
+            fontSize: '0.9rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
           Create Country
           <IconButton onClick={() => setOpenDialog(false)} size="small">
             <CloseIcon />
@@ -175,27 +191,53 @@ const Countries = () => {
             fullWidth
             label="Name"
             margin="dense"
+            size="small"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            sx={{
+              '& .MuiInputBase-input': { fontSize: '0.75rem' },
+              '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+            }}
           />
           <TextField
             fullWidth
             label="Code"
             margin="dense"
+            size="small"
             value={formData.code}
             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+            sx={{
+              '& .MuiInputBase-input': { fontSize: '0.75rem' },
+              '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+            }}
           />
           <TextField
             fullWidth
             label="Description"
             margin="dense"
+            size="small"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            sx={{
+              '& .MuiInputBase-input': { fontSize: '0.75rem' },
+              '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+            }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleCreate}>Save</Button>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            sx={{ fontSize: '0.75rem' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCreate}
+            sx={{ bgcolor: '#122E3E', fontSize: '0.75rem' }}
+          >
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
