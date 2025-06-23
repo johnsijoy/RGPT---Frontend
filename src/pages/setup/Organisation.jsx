@@ -8,7 +8,6 @@ import {
 import DescriptionIcon from '@mui/icons-material/Description';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-import UpdateIcon from '@mui/icons-material/Update';
 import Breadcrumbs from '../../components/common/Breadcrumbs';
 import Pagination from '../../components/common/Pagination';
 import * as XLSX from 'xlsx';
@@ -24,7 +23,6 @@ const Organisation = () => {
   const [formData, setFormData] = useState({
     name: '', type: '', industry: '', description: '', createdBy: '', status: 'Active'
   });
-  const [selectedIndex, setSelectedIndex] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [page, setPage] = useState(1);
@@ -236,7 +234,6 @@ const Organisation = () => {
                     } else {
                       setSelectedItems([...selectedItems, globalIndex]);
                     }
-                    setSelectedIndex(globalIndex);
                   }}
                   sx={{
                     backgroundColor: isSelected ? '#d0ebff' : 'white',

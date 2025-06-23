@@ -282,7 +282,6 @@ export default function Slabrate() {
 
   const isModifyEnabled = selectedIds.length === 1;
   const isDeleteEnabled = selectedIds.length > 0;
-  const isBatchUpdateEnabled = selectedIds.length > 0;
 
   const handleSort = (key) => {
     setSortConfig((prev) => ({

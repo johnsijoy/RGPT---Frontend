@@ -50,9 +50,6 @@ import WebsiteCities from './pages/setup/WebsiteCities';
 import Areas from './pages/setup/areas'; 
 import Localities from './pages/setup/localities'; 
 
-import Areas from './pages/setup/areas';
-import Localities from './pages/setup/localities';
-
 import UserManagement from './pages/admin/UserManagement';
 
 const PrivateRoute = () => {
