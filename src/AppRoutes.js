@@ -133,23 +133,9 @@ const AppRoutes = () => {
             <Route path="countries" element={<Countries />} />
             <Route path="states" element={<States />} />
             <Route path="cities" element={<Cities />} />
-
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-            {/* Website Cities */}
-            <Route path="website-cities">
-              <Route index element={<WebsiteCitiesList />} />
-              <Route path="new" element={<WebsiteCitiesForm />} />
-              <Route path=":id" element={<WebsiteCitiesDetails />} />
-            </Route>
-
-            {/* Website States */}
-            <Route path="website-states">
-              <Route index element={<WebsiteStatesList />} />
-              <Route path="new" element={<WebsiteStatesForm />} />
-              <Route path="edit/:id" element={<WebsiteStatesForm />} />
-              <Route path=":id" element={<WebsiteStatesDetails />} />
-            </Route>
+           
           </Route>
         </Route>
       </Route>
