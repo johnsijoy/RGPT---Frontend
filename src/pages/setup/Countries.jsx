@@ -3,14 +3,14 @@ import {
   Box, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, TextField, Button,
   InputAdornment, Select, MenuItem, IconButton, Tooltip,
-  Dialog, DialogTitle, DialogContent, DialogActions
+  Dialog, DialogTitle, DialogContent, DialogActions, TableSortLabel
 } from '@mui/material';
 
 import {
   Search as SearchIcon,
   Description as DescriptionIcon,
   Add as AddIcon,
-  Close as CloseIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 
 import * as XLSX from 'xlsx';
@@ -25,16 +25,35 @@ const Countries = () => {
   const [page, setPage] = useState(1);
   const [openDialog, setOpenDialog] = useState(false);
   const [formData, setFormData] = useState({ name: '', code: '', description: '' });
+  const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' });
 
   const rowsPerPage = 25;
 
-  const filtered = countries.filter(country => {
-    const matchesSearch =
+  const handleSort = (key) => {
+    setSortConfig(prev =>
+      prev.key === key
+        ? { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: 'asc' }
+    );
+  };
+
+  const sortedCountries = [...countries].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+    const aVal = a[sortConfig.key]?.toString().toLowerCase() || '';
+    const bVal = b[sortConfig.key]?.toString().toLowerCase() || '';
+    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const filtered = sortedCountries.filter(country => {
+    const matchSearch =
       country.name.toLowerCase().includes(search.toLowerCase()) ||
       country.code.toLowerCase().includes(search.toLowerCase()) ||
       country.description?.toLowerCase().includes(search.toLowerCase());
-    const matchesQuery = query ? country.code === query : true;
-    return matchesSearch && matchesQuery;
+
+    const matchQuery = query ? country.code === query : true;
+    return matchSearch && matchQuery;
   });
 
   const paginated = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
@@ -45,7 +64,6 @@ const Countries = () => {
       Code: row.code,
       Description: row.description || '-'
     }));
-
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Countries');
@@ -59,6 +77,12 @@ const Countries = () => {
     setFormData({ name: '', code: '', description: '' });
     setOpenDialog(false);
   };
+
+  const columns = [
+    { key: 'name', label: 'Name' },
+    { key: 'code', label: 'Code' },
+    { key: 'description', label: 'Description' }
+  ];
 
   return (
     <Box sx={{ padding: 2, backgroundColor: '#fff', borderRadius: 2 }}>
@@ -97,9 +121,7 @@ const Countries = () => {
             '& .MuiSelect-select': { fontSize: '0.75rem' }
           }}
           MenuProps={{
-            PaperProps: {
-              sx: { fontSize: '0.75rem' }
-            }
+            PaperProps: { sx: { fontSize: '0.75rem' } }
           }}
         >
           <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Countries</MenuItem>
@@ -136,9 +158,22 @@ const Countries = () => {
           <Table size="small">
             <TableHead sx={{ backgroundColor: '#122E3E' }}>
               <TableRow>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Name</b></TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Code</b></TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Description</b></TableCell>
+                {columns.map(col => (
+                  <TableCell key={col.key} sx={{ color: '#fff', fontSize: '0.8rem' }}>
+                    <TableSortLabel
+                      active={sortConfig.key === col.key}
+                      direction={sortConfig.key === col.key ? sortConfig.direction : 'asc'}
+                      onClick={() => handleSort(col.key)}
+                      sx={{
+                        color: '#fff !important',
+                        '& .MuiTableSortLabel-icon': { opacity: 0, color: '#fff' },
+                        '&:hover .MuiTableSortLabel-icon': { opacity: 1 }
+                      }}
+                    >
+                      <b>{col.label}</b>
+                    </TableSortLabel>
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -187,48 +222,24 @@ const Countries = () => {
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          <TextField
-            fullWidth
-            label="Name"
-            margin="dense"
-            size="small"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            sx={{
-              '& .MuiInputBase-input': { fontSize: '0.75rem' },
-              '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-            }}
-          />
-          <TextField
-            fullWidth
-            label="Code"
-            margin="dense"
-            size="small"
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            sx={{
-              '& .MuiInputBase-input': { fontSize: '0.75rem' },
-              '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-            }}
-          />
-          <TextField
-            fullWidth
-            label="Description"
-            margin="dense"
-            size="small"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            sx={{
-              '& .MuiInputBase-input': { fontSize: '0.75rem' },
-              '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-            }}
-          />
+          {['name', 'code', 'description'].map((field) => (
+            <TextField
+              key={field}
+              fullWidth
+              label={field.charAt(0).toUpperCase() + field.slice(1)}
+              margin="dense"
+              size="small"
+              value={formData[field]}
+              onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+              sx={{
+                '& .MuiInputBase-input': { fontSize: '0.75rem' },
+                '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+              }}
+            />
+          ))}
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setOpenDialog(false)}
-            sx={{ fontSize: '0.75rem' }}
-          >
+          <Button onClick={() => setOpenDialog(false)} sx={{ fontSize: '0.75rem' }}>
             Cancel
           </Button>
           <Button
