@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -36,10 +36,11 @@ import Breadcrumbs from '../../components/common/Breadcrumbs';
 import Pagination from '../../components/common/Pagination';
 import { slabRateMockData } from '../../mock/slabrate';
 import * as XLSX from 'xlsx';
+
 const darkBlue = '#122E3E';
 const grayDisabled = '#B0B0B0';
 
-const smallerInputSx = {
+const smallFormControlSx = {
   '& .MuiInputBase-root': {
     fontSize: '0.75rem',
     minHeight: '28px',
@@ -47,14 +48,18 @@ const smallerInputSx = {
     paddingBottom: '4px',
     '& .MuiOutlinedInput-input': {
       padding: '4px 8px',
+      fontSize: '0.75rem',
     },
   },
   '& .MuiInputLabel-root': {
     fontSize: '0.75rem',
-    top: -8,
-    left: '0px',
+    top: '50%',
+    left: 8,
+    transform: 'translateY(-50%)',
+    transition: 'all 0.2s ease',
     '&.MuiInputLabel-shrink': {
       top: 0,
+      left: 0,
       transform: 'translate(14px, -7px) scale(0.75) !important',
       transformOrigin: 'top left',
     },
@@ -74,7 +79,7 @@ function SlabRateForm({ initialData = {}, onCancel, onSubmit }) {
     formula: '',
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     setFormData({
       type: initialData.type || '',
       slabStart: initialData.slabStart || '',
@@ -102,145 +107,102 @@ function SlabRateForm({ initialData = {}, onCancel, onSubmit }) {
       <IconButton
         onClick={onCancel}
         size="small"
-        sx={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          color: 'grey.600',
-        }}
+        sx={{ position: 'absolute', top: 8, right: 8, color: 'grey.600' }}
         aria-label="close form"
       >
         <CloseIcon />
       </IconButton>
 
       <Typography variant="h6" gutterBottom>
-        {initialData && initialData.id ? 'Edit Slab Rate' : 'Create Slab Rate'}
+        {initialData?.id ? 'Edit Slab Rate' : 'Create Slab Rate'}
       </Typography>
+
       <form onSubmit={handleSubmit}>
         <Stack spacing={2}>
-          <FormControl fullWidth size="small" sx={smallerInputSx}>
-            <InputLabel required>Type</InputLabel>
-            <Select
-              value={formData.type}
-              label="Type"
-              onChange={handleChange('type')}
-              required
-              size="small"
-            >
-              <MenuItem value="Percentage">Percentage</MenuItem>
-              <MenuItem value="Amount">Amount</MenuItem>
-              <MenuItem value="Flat">Flat</MenuItem>
-            </Select>
-          </FormControl>
+          <FormControl fullWidth size="small" sx={smallFormControlSx}>
+  <InputLabel required>Type</InputLabel>
+  <Select
+    value={formData.type}
+    label="Type"
+    onChange={handleChange('type')}
+    required
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          '& .MuiMenuItem-root': {
+            fontSize: '0.75rem',
+            minHeight: '28px',
+            paddingY: '4px',
+          },
+        },
+      },
+    }}
+  >
+    <MenuItem value="Percentage">Percentage</MenuItem>
+    <MenuItem value="Amount">Amount</MenuItem>
+    <MenuItem value="Flat">Flat</MenuItem>
+  </Select>
+</FormControl>
 
-          <TextField
-            label="Slab Start Value"
-            size="small"
-            fullWidth
-            value={formData.slabStart}
-            onChange={handleChange('slabStart')}
-            type="number"
-            required
-            sx={smallerInputSx}
-          />
 
-          <TextField
-            label="Slab End Value"
-            size="small"
-            fullWidth
-            value={formData.slabEnd}
-            onChange={handleChange('slabEnd')}
-            type="number"
-            required
-            sx={smallerInputSx}
-          />
+          <TextField label="Slab Start Value" size="small" fullWidth value={formData.slabStart} onChange={handleChange('slabStart')} type="number" required sx={smallFormControlSx} />
 
-          <TextField
-            label="Slab Percent"
-            size="small"
-            fullWidth
-            value={formData.percent}
-            onChange={handleChange('percent')}
-            type="number"
-            sx={smallerInputSx}
-          />
+          <TextField label="Slab End Value" size="small" fullWidth value={formData.slabEnd} onChange={handleChange('slabEnd')} type="number" required sx={smallFormControlSx} />
 
-          <TextField
-            label="Slab Amount"
-            size="small"
-            fullWidth
-            value={formData.amount}
-            onChange={handleChange('amount')}
-            type="number"
-            sx={smallerInputSx}
-          />
+          <TextField label="Slab Percent" size="small" fullWidth value={formData.percent} onChange={handleChange('percent')} type="number" sx={smallFormControlSx} />
 
-          <TextField
-            label="Applicable From"
-            size="small"
-            fullWidth
-            value={formData.from}
-            onChange={handleChange('from')}
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            required
-            sx={smallerInputSx}
-          />
+          <TextField label="Slab Amount" size="small" fullWidth value={formData.amount} onChange={handleChange('amount')} type="number" sx={smallFormControlSx} />
 
-          <TextField
-            label="Applicable To"
-            size="small"
-            fullWidth
-            value={formData.to}
-            onChange={handleChange('to')}
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            required
-            sx={smallerInputSx}
-          />
+          <TextField label="Applicable From" size="small" fullWidth value={formData.from} onChange={handleChange('from')} type="date" InputLabelProps={{ shrink: true }} required sx={smallFormControlSx} />
 
-          <FormControl fullWidth size="small" sx={smallerInputSx}>
-            <InputLabel required>Projects Applicable</InputLabel>
-            <Select
-              value={formData.project}
-              label="Projects Applicable"
-              onChange={handleChange('project')}
-              required
-              size="small"
-            >
-              <MenuItem value="All Projects">All Projects</MenuItem>
-              <MenuItem value="Residential">Residential</MenuItem>
-              <MenuItem value="Commercial">Commercial</MenuItem>
-              <MenuItem value="Custom">Custom</MenuItem>
-            </Select>
-          </FormControl>
+          <TextField label="Applicable To" size="small" fullWidth value={formData.to} onChange={handleChange('to')} type="date" InputLabelProps={{ shrink: true }} required sx={smallFormControlSx} />
 
-          <TextField
-            label="Formula"
-            size="small"
-            fullWidth
-            value={formData.formula}
-            onChange={handleChange('formula')}
-            sx={smallerInputSx}
-          />
+          <FormControl fullWidth size="small" sx={smallFormControlSx}>
+  <InputLabel required>Projects Applicable</InputLabel>
+  <Select
+    value={formData.project}
+    label="Projects Applicable"
+    onChange={handleChange('project')}
+    required
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          '& .MuiMenuItem-root': {
+            fontSize: '0.75rem',
+            minHeight: '28px',
+            paddingY: '4px',
+          },
+        },
+      },
+    }}
+  >
+    <MenuItem value="All Projects">All Projects</MenuItem>
+    <MenuItem value="Residential">Residential</MenuItem>
+    <MenuItem value="Commercial">Commercial</MenuItem>
+    <MenuItem value="Custom">Custom</MenuItem>
+  </Select>
+</FormControl>
+
+
+          <TextField label="Formula" size="small" fullWidth value={formData.formula} onChange={handleChange('formula')} sx={smallFormControlSx} />
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
             <Button
-  variant="contained"
-  type="submit"
-  size="small"
-  sx={{
-    textTransform: 'none',
-    backgroundColor: '#162F40',
-    '&:hover': { backgroundColor: '#121f2a' },
-    fontSize: '0.75rem',
-    minWidth: 70,
-    height: 28,
-    padding: '4px 10px',
-  }}
->
-  Save
-</Button>
+              variant="contained"
+              type="submit"
+              size="small"
+              sx={{
+                textTransform: 'none',
+                backgroundColor: darkBlue,
+                '&:hover': { backgroundColor: '#121f2a' },
+                fontSize: '0.75rem',
+                minWidth: 40,
+                height: 25,
+                padding: '4px 10px',
+              }}
+            >
+              Save
+            </Button>
           </Box>
         </Stack>
       </form>
@@ -580,12 +542,16 @@ export default function Slabrate() {
               {paginatedData.length > 0 ? (
                 paginatedData.map((item) => (
                   <TableRow
-                    key={item.id}
-                    hover
-                    selected={selectedIds.includes(item.id)}
-                    onClick={() => handleCheckbox(item.id)}
-                    sx={{ cursor: 'pointer' }}
-                  >
+  key={item.id}
+  onClick={() => handleCheckbox(item.id)}
+  sx={{
+    cursor: 'pointer',
+    backgroundColor: 'inherit !important', // Prevent selection color
+    '&:hover': {
+      backgroundColor: 'inherit !important', // Prevent hover color
+    },
+  }}
+>
                     <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         size="small"
@@ -670,7 +636,8 @@ export default function Slabrate() {
               backgroundColor: '#162F40',
               fontSize: '0.75rem',
               '&:hover': { backgroundColor: '#121f2a' },
-              minWidth: 80,
+              minWidth: 60,
+                height: 25,
             }}
           >
             Delete
