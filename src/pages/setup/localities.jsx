@@ -1,18 +1,24 @@
-import React, { useState } from 'react';
+// --- Localities.jsx (updated to match Areas.jsx styling/logic) ---
+import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, TextField, Checkbox, Button,
   InputAdornment, IconButton, Dialog, DialogTitle,
-  DialogContent, DialogActions, Stack
+  DialogContent, Stack
 } from '@mui/material';
 
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import DescriptionIcon from '@mui/icons-material/Description';
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import Pagination from '../../components/common/Pagination';
+
+import mockLocalities from '../../mock/localities';
 
 const Breadcrumbs = () => {
   const navigate = useNavigate();
@@ -30,36 +36,46 @@ const Breadcrumbs = () => {
 const Localities = () => {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '', area: '' });
   const [records, setRecords] = useState([]);
   const [page, setPage] = useState(1);
   const [editIndex, setEditIndex] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' });
   const rowsPerPage = 25;
 
-  const filteredRecords = records.filter(
-    (r) =>
-      r.name.toLowerCase().includes(query.toLowerCase()) ||
-      r.description.toLowerCase().includes(query.toLowerCase()) ||
-      r.area.toLowerCase().includes(query.toLowerCase())
+  useEffect(() => {
+    setRecords(mockLocalities);
+  }, []);
+
+  const filtered = records.filter((r) =>
+    r.name.toLowerCase().includes(query.toLowerCase()) ||
+    r.description.toLowerCase().includes(query.toLowerCase()) ||
+    r.area.toLowerCase().includes(query.toLowerCase())
   );
 
-  const paginatedData = filteredRecords.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-  const allSelectedOnPage =
-    paginatedData.length > 0 &&
-    paginatedData.every((_, idx) => selectedRows.includes((page - 1) * rowsPerPage + idx));
+  const sorted = [...filtered].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+    const aVal = a[sortConfig.key].toLowerCase();
+    const bVal = b[sortConfig.key].toLowerCase();
+    return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+  });
 
-  const handleCreateOrUpdate = () => {
-    const updatedRecords = [...records];
-    if (editIndex !== null) {
-      updatedRecords[editIndex] = { ...formData };
-    } else {
-      updatedRecords.push({ ...formData });
-    }
-    setRecords(updatedRecords);
-    setFormData({ name: '', description: '', area: '' });
-    setOpen(false);
-    setEditIndex(null);
+  const paginatedData = sorted.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const renderSortIcon = (key) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === 'asc'
+      ? <ArrowUpwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
+      : <ArrowDownwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />;
   };
 
   const handleSelectRow = (index) => {
@@ -69,20 +85,32 @@ const Localities = () => {
   };
 
   const handleSelectAll = (checked) => {
-    const start = (page - 1) * rowsPerPage;
-    const end = page * rowsPerPage;
-    const currentPageIndexes = records.slice(start, end).map((_, idx) => start + idx);
-    setSelectedRows(
-      checked
-        ? [...new Set([...selectedRows, ...currentPageIndexes])]
-        : selectedRows.filter((i) => !currentPageIndexes.includes(i))
-    );
+    const allIndexes = paginatedData.map((_, idx) => (page - 1) * rowsPerPage + idx);
+    setSelectedRows(checked ? allIndexes : []);
   };
 
-  const handleDelete = () => {
-    const updatedRecords = records.filter((_, i) => !selectedRows.includes(i));
-    setRecords(updatedRecords);
+  const handleCreateOrUpdate = () => {
+    const updated = [...records];
+    if (editIndex !== null) {
+      updated[editIndex] = { ...formData };
+    } else {
+      updated.push({ ...formData });
+    }
+    setRecords(updated);
+    setFormData({ name: '', description: '', area: '' });
+    setOpen(false);
+    setEditIndex(null);
     setSelectedRows([]);
+  };
+
+  const handleDelete = () => setDeleteConfirmOpen(true);
+
+  const confirmDelete = () => {
+    const updated = [...records];
+    selectedRows.sort((a, b) => b - a).forEach((i) => updated.splice(i, 1));
+    setRecords(updated);
+    setSelectedRows([]);
+    setDeleteConfirmOpen(false);
   };
 
   const handleModify = () => {
@@ -95,67 +123,36 @@ const Localities = () => {
   };
 
   const handleExport = () => {
-    const data = records.map((row) => ({
-      'Locality Name': row.name,
-      'Description': row.description,
-      'Area': row.area
+    const data = records.map(({ name, description, area }) => ({
+      'Locality Name': name,
+      'Description': description,
+      'Area': area
     }));
-
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Localities');
-    XLSX.writeFile(wb, 'Localities.xlsx');
+    XLSX.writeFile(wb, 'localities.xlsx');
   };
 
   return (
     <Box sx={{ padding: 2, backgroundColor: '#fff', borderRadius: 2 }}>
       <Breadcrumbs />
+      <Typography variant="h6" sx={{ fontWeight: 600, color: '#122E3E', mb: 1, fontSize: '1rem' }}>Localities</Typography>
 
-      {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 2 }}>
-        {/* Left Controls */}
         <Stack direction="row" spacing={1}>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={handleModify}
-            disabled={selectedRows.length !== 1}
-            sx={{ fontSize: '0.75rem' }}
-          >
+          <Button variant="contained" size="small" onClick={handleModify} disabled={selectedRows.length !== 1}
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', padding: '4px 10px', textTransform: 'none' }}>
             Modify
           </Button>
-
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={handleDelete}
-            disabled={selectedRows.length === 0}
-            color="error"
-            sx={{ fontSize: '0.75rem' }}
-          >
+          <Button variant="contained" size="small" onClick={handleDelete} disabled={selectedRows.length === 0}
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', padding: '4px 10px', textTransform: 'none' }}>
             Delete
           </Button>
-
-          <Button
-            variant="outlined"
-            size="small"
-            disabled
-            sx={{ fontSize: '0.75rem' }}
-          >
-            Audit Trail
-          </Button>
-
-          <Button
-            variant="outlined"
-            size="small"
-            disabled
-            sx={{ fontSize: '0.75rem' }}
-          >
-            Batch Update
-          </Button>
+          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>Audit Trail</Button>
+          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>Batch Update</Button>
         </Stack>
 
-        {/* Right Controls */}
         <Stack direction="row" spacing={1}>
           <TextField
             variant="outlined"
@@ -163,61 +160,59 @@ const Localities = () => {
             placeholder="Search..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            sx={{ minWidth: 160, fontSize: '0.75rem' }}
+            sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { height: 28 }, input: { fontSize: '0.75rem', padding: '4px 8px' } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
+                  <SearchIcon sx={{ fontSize: '1rem' }} />
                 </InputAdornment>
               )
             }}
           />
-
-          <IconButton size="small" onClick={handleExport} sx={{ color: 'green' }} title="Export to Excel">
-            <DescriptionIcon fontSize="medium" />
+          <IconButton size="small" onClick={handleExport} sx={{ height: 28, width: 36, color: 'green' }}>
+            <DescriptionIcon sx={{ fontSize: '1.4rem' }} />
           </IconButton>
-
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<AddIcon />}
-            sx={{ bgcolor: '#122E3E', textTransform: 'none', fontSize: '0.75rem' }}
-            onClick={() => {
-              setFormData({ name: '', description: '', area: '' });
-              setEditIndex(null);
-              setOpen(true);
-            }}
-          >
+          <Button variant="contained" size="small"
+            onClick={() => { setFormData({ name: '', description: '', area: '' }); setEditIndex(null); setOpen(true); }}
+            sx={{ bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', height: 28, px: 1.5, textTransform: 'none' }}
+            startIcon={<AddIcon sx={{ fontSize: '1rem' }} />}>
             Create
           </Button>
         </Stack>
       </Box>
 
-      {/* Table */}
       <Paper>
         <TableContainer>
           <Table size="small">
-            <TableHead sx={{ backgroundColor: '#122E3E' }}>
+            <TableHead sx={{ bgcolor: '#122E3E' }}>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ color: '#fff' }}>
-                  <Checkbox checked={allSelectedOnPage} onChange={(e) => handleSelectAll(e.target.checked)} />
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))}
+                    indeterminate={selectedRows.some((i) => paginatedData.some((_, idx) => i === (page - 1) * rowsPerPage + idx)) && !paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    sx={{ color: '#fff', padding: 0 }}
+                  />
                 </TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Locality Name</b></TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Locality Description</b></TableCell>
-                <TableCell sx={{ color: '#fff', fontSize: '0.8rem' }}><b>Area</b></TableCell>
+                {['name', 'description', 'area'].map((col) => (
+                  <TableCell key={col} onClick={() => handleSort(col)} sx={{ cursor: 'pointer', color: '#fff', fontSize: '0.8rem' }}>
+                    {col.charAt(0).toUpperCase() + col.slice(1)} {renderSortIcon(col)}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((row, idx) => {
-                  const absoluteIndex = (page - 1) * rowsPerPage + idx;
+              {paginatedData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">No records found.</TableCell>
+                </TableRow>
+              ) : (
+                paginatedData.map((row, i) => {
+                  const idx = (page - 1) * rowsPerPage + i;
                   return (
-                    <TableRow key={idx}>
+                    <TableRow key={idx} selected={selectedRows.includes(idx)} hover>
                       <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={selectedRows.includes(absoluteIndex)}
-                          onChange={() => handleSelectRow(absoluteIndex)}
-                        />
+                        <Checkbox checked={selectedRows.includes(idx)} onChange={() => handleSelectRow(idx)} />
                       </TableCell>
                       <TableCell sx={{ fontSize: '0.75rem' }}>{row.name}</TableCell>
                       <TableCell sx={{ fontSize: '0.75rem' }}>{row.description}</TableCell>
@@ -225,58 +220,58 @@ const Localities = () => {
                     </TableRow>
                   );
                 })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ fontSize: '0.75rem', py: 6 }}>
-                    No records found. Create one.
-                  </TableCell>
-                </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
 
-        {/* Pagination */}
         <Box mt={2} display="flex" justifyContent="flex-end">
-          <Pagination
-            count={Math.ceil(filteredRecords.length / rowsPerPage)}
-            page={page}
-            onChange={setPage}
-            size="small"
-          />
+          <Pagination count={Math.ceil(sorted.length / rowsPerPage)} page={page} onChange={(p) => setPage(p)} size="small" />
         </Box>
       </Paper>
 
-      {/* Create/Edit Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>{editIndex !== null ? 'Edit Locality' : 'Create Locality'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Locality Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Locality Description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Area"
-            value={formData.area}
-            onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-          />
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+        <DialogTitle sx={{ fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#122E3E' }}>
+          {editIndex !== null ? 'Modify Locality' : 'Create Locality'}
+          <IconButton size="small" onClick={() => setOpen(false)}>
+            <CloseIcon sx={{ fontSize: '1.1rem', color: '#122E3E' }} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ px: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {['name', 'description', 'area'].map(field => (
+            <TextField
+              key={field}
+              label={field.charAt(0).toUpperCase() + field.slice(1)}
+              fullWidth
+              size="small"
+              value={formData[field]}
+              onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+              sx={{
+                fontSize: '0.75rem',
+                '& .MuiInputBase-input': { fontSize: '0.75rem' },
+                '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+              }}
+            />
+          ))}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleCreateOrUpdate}>Save</Button>
-        </DialogActions>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+          <Button variant="contained" size="small" onClick={handleCreateOrUpdate} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', px: 2 }}>Save</Button>
+        </Box>
+      </Dialog>
+
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+        <DialogTitle sx={{ fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#122E3E' }}>
+          Confirm Delete
+          <IconButton size="small" onClick={() => setDeleteConfirmOpen(false)}>
+            <CloseIcon sx={{ fontSize: '1.1rem' }} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ fontSize: '0.875rem' }}>
+          Are you sure you want to delete selected locality?
+        </DialogContent>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+          <Button variant="contained" size="small" onClick={confirmDelete} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>Delete</Button>
+        </Box>
       </Dialog>
     </Box>
   );
