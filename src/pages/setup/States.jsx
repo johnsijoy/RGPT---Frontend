@@ -1,27 +1,120 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, TextField, Button, Dialog, DialogTitle,
-  DialogContent, DialogActions, Table, TableHead, TableBody, TableRow,
-  TableCell, TableContainer, Paper, TableSortLabel, MenuItem, Select,
-  FormControl, InputLabel, Checkbox, IconButton, Chip
+  Box, Typography, Table, TableContainer, TableHead, TableRow, TableCell,
+  TableBody, Paper, Button, IconButton, Dialog, DialogTitle,
+  DialogContent, DialogActions, Stack, Checkbox, TextField, Select, MenuItem
 } from '@mui/material';
+
 import DescriptionIcon from '@mui/icons-material/Description';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import * as XLSX from 'xlsx';
 
-const mockStates = [
-  { id: 1, stateId: 'S001', name: 'Maharashtra', description: 'Western state in India', country: 'India', status: 'Active' },
-  { id: 2, stateId: 'S002', name: 'California', description: 'West coast state in USA', country: 'USA', status: 'Inactive' },
-  { id: 3, stateId: 'S003', name: 'Karnataka', description: 'Southern state in India', country: 'India', status: 'Active' }
-];
+import mockStates from '../../mock/states';
+import Pagination from '../../components/common/Pagination';
+import Breadcrumbs from '../../components/common/Breadcrumbs';
 
 const States = () => {
-  const [open, setOpen] = useState(false);
-  const [states, setStates] = useState(mockStates);
-  const [formData, setFormData] = useState({ id: null, stateId: '', name: '', description: '', country: '', status: 'Active' });
+  const [states, setStates] = useState(
+    mockStates.map((s, index) => ({ ...s, id: index + 1 }))
+  );
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [sortConfig, setSortConfig] = useState({ key: 'stateId', direction: 'asc' });
+  const [combinedFilter, setCombinedFilter] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
+  const [page, setPage] = useState(1);
+  const [open, setOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' });
+  const [formData, setFormData] = useState({
+    id: null,
+    stateId: '',
+    name: '',
+    description: '',
+    country: ''
+  });
+
+  const rowsPerPage = 25;
+
+  const uniqueStates = [...new Set(states.map(s => s.name))];
+  const uniqueCountries = [...new Set(states.map(s => s.country))];
+
+const filtered = states.filter(s =>
+  Object.values(s).some(val =>
+    String(val).toLowerCase().includes(search.toLowerCase())
+  ) &&
+  (combinedFilter
+    ? s.name === combinedFilter || s.country === combinedFilter
+    : true)
+);
+
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+    const valA = String(a[sortConfig.key]).toLowerCase();
+    const valB = String(b[sortConfig.key]).toLowerCase();
+    if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const paginated = sorted.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleOpenForm = (type) => {
+    if (type === 'edit') {
+      if (selectedIds.length !== 1) return alert('Select exactly one row to modify');
+      const selected = states.find(s => s.id === selectedIds[0]);
+      setFormData(selected);
+    } else {
+      setFormData({
+        id: null,
+        stateId: '',
+        name: '',
+        description: '',
+        country: ''
+      });
+    }
+    setOpen(true);
+  };
+
+  const handleDeleteBatch = () => {
+    setStates(prev => prev.filter(s => !selectedIds.includes(s.id)));
+    setSelectedIds([]);
+    setDeleteConfirmOpen(false);
+  };
+
+  const handleSave = () => {
+    if (!formData.stateId || !formData.name) {
+      return alert('Please fill required fields (State ID, Name)');
+    }
+
+    if (formData.id) {
+      setStates(prev => prev.map(s => (s.id === formData.id ? formData : s)));
+    } else {
+      setStates(prev => [...prev, { ...formData, id: Date.now() }]);
+    }
+
+    setSelectedIds([]);
+    setOpen(false);
+  };
+
+const exportToExcel = () => {
+  const ws = XLSX.utils.json_to_sheet(
+    filtered.map(({ id, stateId, ...rest }) => rest) // ⛔ omit both "id" and "stateId"
+  );
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'States');
+  XLSX.writeFile(wb, 'States_List.xlsx');
+};
+
+
 
   const handleSort = (key) => {
     setSortConfig(prev => ({
@@ -30,157 +123,180 @@ const States = () => {
     }));
   };
 
-  const sortedStates = [...states].sort((a, b) => {
-    const valA = a[sortConfig.key]?.toLowerCase?.() || a[sortConfig.key];
-    const valB = b[sortConfig.key]?.toLowerCase?.() || b[sortConfig.key];
-    if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-    if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  const filtered = sortedStates.filter(state =>
-    Object.values(state).some(val =>
-      String(val).toLowerCase().includes(search.toLowerCase())
-    ) && (statusFilter === 'All' || state.status === statusFilter)
-  );
-
-  const handleSubmit = () => {
-    if (formData.id) {
-      setStates(prev => prev.map(s => s.id === formData.id ? formData : s));
-      setSelectedIds([]);
-    } else {
-      setStates([...states, { ...formData, id: Date.now() }]);
-    }
-    setFormData({ id: null, stateId: '', name: '', description: '', country: '', status: 'Active' });
-    setOpen(false);
-  };
-
-  const handleEdit = () => {
-    if (selectedIds.length !== 1) return alert('Select one row to edit');
-    const state = states.find(s => s.id === selectedIds[0]);
-    if (state) {
-      setFormData(state);
-      setOpen(true);
-    }
-  };
-
-  const handleDelete = () => {
-    if (selectedIds.length === 0) return alert('Select at least one row to delete');
-    const updated = states.filter(s => !selectedIds.includes(s.id));
-    setStates(updated);
-    setSelectedIds([]);
-  };
-
-  const handleCheckboxChange = (id) => {
-    setSelectedIds(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-
-  const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(filtered);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'States');
-    XLSX.writeFile(wb, 'States_List.xlsx');
-  };
+  useEffect(() => setPage(1), [search, combinedFilter]);
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600, color: '#134ca7' }}>States</Typography>
-        <TextField size="small" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Status</InputLabel>
-          <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} label="Status">
-            <MenuItem value="All">All</MenuItem>
-            <MenuItem value="Active">Active</MenuItem>
-            <MenuItem value="Inactive">Inactive</MenuItem>
+    <Box sx={{ p: 2, bgcolor: '#fff', borderRadius: 2 }}>
+      <Breadcrumbs />
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
+        <Typography variant="h6">States</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TextField
+            size="small"
+            placeholder="Search..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            sx={{ minWidth: 160 }}
+          />
+
+          <Select
+            size="small"
+            value={combinedFilter}
+            onChange={(e) => setCombinedFilter(e.target.value)}
+            displayEmpty
+            sx={{ minWidth: 200, fontSize: '0.75rem' }}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem disabled><b>States</b></MenuItem>
+            {uniqueStates.map(state => (
+              <MenuItem key={state} value={state}>{state}</MenuItem>
+            ))}
+            <MenuItem disabled><b>Countries</b></MenuItem>
+            {uniqueCountries.map(country => (
+              <MenuItem key={country} value={country}>{country}</MenuItem>
+            ))}
           </Select>
-        </FormControl>
-        <Button size="small" variant="outlined" onClick={handleEdit}>Edit</Button>
-        <Button size="small" variant="outlined" color="error" onClick={handleDelete}>Delete</Button>
-        <Button size="small" variant="contained" sx={{ bgcolor: '#134ca7' }} onClick={() => setOpen(true)}>Create</Button>
-        <IconButton onClick={exportToExcel} color="primary">
-          <DescriptionIcon />
-        </IconButton>
+
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddIcon />}
+            sx={{ textTransform: 'none', fontSize: '0.75rem', bgcolor: '#122E3E', '&:hover': { bgcolor: '#0F3B56' } }}
+            onClick={() => handleOpenForm('create')}
+          >
+            Create
+          </Button>
+          <IconButton size="small" sx={{ color: 'green' }} title="Export to Excel" onClick={exportToExcel}>
+            <DescriptionIcon />
+          </IconButton>
+        </Box>
       </Box>
 
-      <TableContainer component={Paper} elevation={1}>
-        <Table size="small">
-          <TableHead sx={{ backgroundColor: '#162F40' }}>
-            <TableRow>
-              <TableCell padding="checkbox" sx={{ color: '#fff' }}></TableCell>
-              {['stateId', 'name', 'description', 'country', 'status'].map((col) => (
-                <TableCell key={col} sx={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>
-                  <TableSortLabel
-                    active={sortConfig.key === col}
-                    direction={sortConfig.key === col ? sortConfig.direction : 'asc'}
-                    onClick={() => handleSort(col)}
-                    sx={{ color: '#fff !important', '& .MuiTableSortLabel-icon': { color: '#fff !important' } }}
-                  >
-                    {col.charAt(0).toUpperCase() + col.slice(1)}
-                  </TableSortLabel>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.length > 0 ? filtered.map((state) => (
-              <TableRow key={state.id}>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    size="small"
-                    checked={selectedIds.includes(state.id)}
-                    onChange={() => handleCheckboxChange(state.id)}
-                  />
-                </TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>{state.stateId}</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>{state.name}</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>{state.description}</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>{state.country}</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem' }}>
-                  <Chip
-                    label={state.status}
-                    size="small"
-                    sx={{
-                      backgroundColor: state.status === 'Active' ? '#d4edda' : '#f8d7da',
-                      color: state.status === 'Active' ? '#155724' : '#721c24',
-                      fontWeight: 500
-                    }}
-                  />
-                </TableCell>
-              </TableRow>
-            )) : (
-              <TableRow>
-                <TableCell colSpan={6} align="center">
-                  <Typography variant="body2" sx={{ py: 2 }}>
-                    No records found.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Stack direction="row" spacing={1} mb={2}>
+        <Button
+          variant="contained"
+          size="small"
+          disabled={selectedIds.length !== 1}
+          onClick={() => handleOpenForm('edit')}
+          sx={{
+            textTransform: 'none',
+            fontSize: '0.75rem',
+            bgcolor: selectedIds.length === 1 ? '#122E3E' : '#ccc',
+            color: selectedIds.length === 1 ? '#fff' : '#666',
+            '&:hover': {
+              bgcolor: selectedIds.length === 1 ? '#0F3B56' : '#ccc',
+              cursor: selectedIds.length === 1 ? 'pointer' : 'default'
+            }
+          }}
+        >
+          Modify
+        </Button>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ bgcolor: '#f5faff', fontWeight: 600 }}>{formData.id ? 'Edit State' : 'Create State'}</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField label="State ID" value={formData.stateId} onChange={e => setFormData({ ...formData, stateId: e.target.value })} fullWidth size="small" />
-          <TextField label="State Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} fullWidth size="small" />
-          <TextField label="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} fullWidth size="small" />
-          <TextField label="Country" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} fullWidth size="small" />
-          <FormControl fullWidth size="small">
-            <InputLabel>Status</InputLabel>
-            <Select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} label="Status">
-              <MenuItem value="Active">Active</MenuItem>
-              <MenuItem value="Inactive">Inactive</MenuItem>
-            </Select>
-          </FormControl>
+        <Button
+          variant="contained"
+          size="small"
+          disabled={selectedIds.length === 0}
+          onClick={() => setDeleteConfirmOpen(true)}
+          sx={{
+            textTransform: 'none',
+            fontSize: '0.75rem',
+            bgcolor: selectedIds.length === 0 ? '#ccc' : '#122E3E',
+            color: selectedIds.length === 0 ? '#666' : '#fff',
+            '&:hover': {
+              bgcolor: selectedIds.length === 0 ? '#ccc' : '#0F3B56',
+              cursor: selectedIds.length === 0 ? 'default' : 'pointer'
+            }
+          }}
+        >
+          Delete
+        </Button>
+      </Stack>
+
+      <Paper>
+        <TableContainer>
+          <Table size="small">
+            <TableHead sx={{ bgcolor: '#122E3E' }}>
+              <TableRow>
+                <TableCell padding="checkbox" />
+                {['stateId', 'name', 'description', 'country'].map((key) => (
+                  <TableCell
+                    key={key}
+                    sx={{ color: '#fff', fontSize: '0.8rem', cursor: 'pointer' }}
+                    onClick={() => handleSort(key)}
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                    {sortConfig.key === key &&
+                      (sortConfig.direction === 'asc'
+                        ? <ArrowDropUpIcon fontSize="small" />
+                        : <ArrowDropDownIcon fontSize="small" />)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginated.map((s) => (
+                <TableRow key={s.id} hover selected={selectedIds.includes(s.id)}>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedIds.includes(s.id)}
+                      onChange={() => handleSelectOne(s.id)}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{s.stateId}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{s.name}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{s.description}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{s.country}</TableCell>
+                </TableRow>
+              ))}
+              {paginated.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ fontSize: '0.75rem', color: '#666' }}>
+                    No record found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Box mt={2} display="flex" justifyContent="flex-end">
+          <Pagination
+            count={Math.ceil(sorted.length / rowsPerPage)}
+            page={page}
+            onChange={setPage}
+            size="small"
+          />
+        </Box>
+      </Paper>
+
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {formData.id ? 'Modify State' : 'Create State'}
+          <IconButton size="small" onClick={() => setOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <TextField label="State ID" fullWidth margin="dense" value={formData.stateId} onChange={e => setFormData({ ...formData, stateId: e.target.value })} />
+          <TextField label="Name" fullWidth margin="dense" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+          <TextField label="Description" fullWidth margin="dense" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+          <TextField label="Country" fullWidth margin="dense" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button size="small" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button size="small" variant="contained" sx={{ bgcolor: '#134ca7' }} onClick={handleSubmit}>Save</Button>
+        <DialogActions>
+          <Button sx={{ fontSize: '0.75rem' }} onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="contained" sx={{ fontSize: '0.75rem', bgcolor: '#122E3E', '&:hover': { bgcolor: '#0F3B56' } }} onClick={handleSave}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete {selectedIds.length} state{selectedIds.length > 1 ? 's' : ''}?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+          <Button onClick={handleDeleteBatch} variant="contained" sx={{ bgcolor: '#122E3E', '&:hover': { bgcolor: '#0F3B56' } }}>Delete</Button>
         </DialogActions>
       </Dialog>
     </Box>

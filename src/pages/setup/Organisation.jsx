@@ -24,7 +24,6 @@ const Organisation = () => {
   const [formData, setFormData] = useState({
     name: '', type: '', industry: '', description: '', createdBy: '', status: 'Active'
   });
-  const [selectedIndex, setSelectedIndex] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [page, setPage] = useState(1);
@@ -252,7 +251,6 @@ const handleExportToExcel = () => {
                     } else {
                       setSelectedItems([...selectedItems, globalIndex]);
                     }
-                    setSelectedIndex(globalIndex);
                   }}
                   sx={{
                     backgroundColor: isSelected ? '#d0ebff' : 'white',
