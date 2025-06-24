@@ -36,6 +36,8 @@ import Breadcrumbs from '../../components/common/Breadcrumbs';
 import Pagination from '../../components/common/Pagination';
 import { slabRateMockData } from '../../mock/slabrate';
 import * as XLSX from 'xlsx';
+const darkBlue = '#122E3E';
+const grayDisabled = '#B0B0B0';
 
 const smallerInputSx = {
   '& .MuiInputBase-root': {
@@ -224,17 +226,21 @@ function SlabRateForm({ initialData = {}, onCancel, onSubmit }) {
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
             <Button
-              variant="contained"
-              type="submit"
-              sx={{
-                textTransform: 'none',
-                backgroundColor: '#162F40',
-                '&:hover': { backgroundColor: '#121f2a' },
-                minWidth: 100,
-              }}
-            >
-              Save
-            </Button>
+  variant="contained"
+  type="submit"
+  size="small"
+  sx={{
+    textTransform: 'none',
+    backgroundColor: '#162F40',
+    '&:hover': { backgroundColor: '#121f2a' },
+    fontSize: '0.75rem',
+    minWidth: 70,
+    height: 28,
+    padding: '4px 10px',
+  }}
+>
+  Save
+</Button>
           </Box>
         </Stack>
       </form>
@@ -422,7 +428,17 @@ export default function Slabrate() {
             disabled={!isModifyEnabled}
             variant="contained"
             size="small"
-            sx={getButtonSx(isModifyEnabled)}
+             sx={{
+      fontSize: '0.75rem',
+      textTransform: 'none',
+      padding: '4px 10px',
+      backgroundColor: isModifyEnabled ? darkBlue : grayDisabled,
+      color: '#fff',
+      '&:hover': {
+        backgroundColor: isModifyEnabled ? '#0f1e2d' : grayDisabled,
+      },
+    }}
+
           >
             Modify
           </Button>
@@ -431,7 +447,16 @@ export default function Slabrate() {
             disabled={!isDeleteEnabled}
             variant="contained"
             size="small"
-            sx={getButtonSx(isDeleteEnabled)}
+            sx={{
+      fontSize: '0.75rem',
+      textTransform: 'none',
+      padding: '4px 10px',
+      backgroundColor: isDeleteEnabled ? darkBlue : grayDisabled,
+      color: '#fff',
+      '&:hover': {
+        backgroundColor: isDeleteEnabled ? '#0f1e2d' : grayDisabled,
+      },
+    }}
           >
             Delete
           </Button>
@@ -440,7 +465,16 @@ export default function Slabrate() {
             disabled={true}
             variant="contained"
             size="small"
-            sx={getButtonSx(false)}
+           sx={{
+      fontSize: '0.75rem',
+      textTransform: 'none',
+      padding: '4px 10px',
+      backgroundColor: isDeleteEnabled ? darkBlue : grayDisabled,
+      color: '#fff',
+      '&:hover': {
+        backgroundColor: isDeleteEnabled ? '#0f1e2d' : grayDisabled,
+      },
+    }}
           >
             Batch Update
           </Button>
@@ -599,7 +633,8 @@ export default function Slabrate() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onClose={closeDeleteDialog}>
-        <DialogTitle sx={{ m: 0, p: 2, position: 'relative' }}>
+        <DialogTitle sx={{ m: 0, p: 2, position: 'relative',borderBottom: 'none' }}>
+          <Typography variant="h6">Confirm Delete</Typography>
           <IconButton
             aria-label="close"
             onClick={closeDeleteDialog}
@@ -614,12 +649,18 @@ export default function Slabrate() {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent
+        sx={{ borderTop: 'none' }}
+        >
+
+        
+        
           <Typography fontSize="0.875rem">
             Are you sure you want to delete {selectedIds.length} selected slab rate
             {selectedIds.length > 1 ? 's' : ''}?
           </Typography>
-        </DialogContent>
+          </DialogContent>
+        
         <DialogActions sx={{ pr: 3, pb: 2 }}>
           <Button
             onClick={confirmDelete}
