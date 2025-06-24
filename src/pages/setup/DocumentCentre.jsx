@@ -266,6 +266,7 @@ const DocumentCentre = () => {
             </TableBody>
           </Table>
         </TableContainer>
+      </Paper>
 
         <Box mt={2} display="flex" justifyContent="flex-end">
           <Pagination
@@ -275,7 +276,7 @@ const DocumentCentre = () => {
             size="small"
           />
         </Box>
-      </Paper>
+
 
       {/* Dialogs */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
@@ -344,7 +345,7 @@ const DocumentCentre = () => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent >
           <Typography sx={{fontSize: '0.875rem', mt: 1}}>
             Are you sure you want to delete the selected document(s)?
           </Typography>
