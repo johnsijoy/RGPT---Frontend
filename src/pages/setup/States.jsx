@@ -105,7 +105,7 @@ const States = () => {
 
   const handleSave = () => {
     if (!formData.stateId || !formData.name) {
-      setDialogMessage('Please fill required fields: State ID and Name.');
+      setDialogMessage('Please fill required fields : State ID and Name.');
       setMessageDialogOpen(true);
       return;
     }
