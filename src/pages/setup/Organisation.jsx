@@ -12,6 +12,7 @@ import Breadcrumbs from '../../components/common/Breadcrumbs';
 import Pagination from '../../components/common/Pagination';
 import * as XLSX from 'xlsx';
 import mockOrganisationData from '../../mock/organisation';
+import { Checkbox } from '@mui/material';
 
 const Organisation = () => {
   const [search, setSearch] = useState('');
@@ -66,23 +67,41 @@ const Organisation = () => {
     setIsEditMode(false);
     setEditingIndex(null);
   };
+const handleExportToExcel = () => {
+  const formattedData = organisations.map(org => ({
+    Name: org.name,
+    Type: org.type,
+    Industry: org.industry,
+    Description: org.description,
+    'Created By': org.createdBy,
+    Status: org.status
+  }));
 
-  const handleExportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(organisations);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Organisations');
-    XLSX.writeFile(workbook, 'organisations.xlsx');
-  };
+  const worksheet = XLSX.utils.json_to_sheet(formattedData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Organisations');
+  XLSX.writeFile(workbook, 'organisations.xlsx');
+};
 
   const handleEdit = () => {
-    if (selectedItems.length === 1) {
-      const idx = selectedItems[0];
-      setFormData(organisations[idx]);
-      setIsEditMode(true);
-      setEditingIndex(idx);
-      setShowForm(true);
-    }
-  };
+  if (selectedItems.length === 1) {
+    const idx = selectedItems[0];
+    const selectedRow = filtered.find((_, i) => (page - 1) * itemsPerPage + i === idx);
+    const originalIndex = organisations.findIndex(item =>
+      item.name === selectedRow.name &&
+      item.type === selectedRow.type &&
+      item.industry === selectedRow.industry &&
+      item.description === selectedRow.description &&
+      item.createdBy === selectedRow.createdBy &&
+      item.status === selectedRow.status
+    );
+    setFormData(selectedRow);
+    setIsEditMode(true);
+    setEditingIndex(originalIndex);
+    setShowForm(true);
+  }
+};
+
 
   return (
     <Box sx={{ p: 2, backgroundColor: '#fff', borderRadius: 2 }}>
@@ -91,33 +110,28 @@ const Organisation = () => {
         Organisations
       </Typography>
 
-      {/* Top control layout */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', alignItems: 'flex-start', mb: 2 }}>
-        {/* Left buttons - Modify & Batch */}
-        {/* Left buttons - Modify & Batch */}
-<Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-  <Button
-    variant="outlined"
-    size="small"
-    disabled={selectedItems.length !== 1}
-    sx={{ fontSize: '0.75rem', textTransform: 'none' }}
-    onClick={handleEdit}
-  >
-    Modify
-  </Button>
-  <Button
-    variant="outlined"
-    size="small"
-    disabled
-    sx={{ fontSize: '0.75rem', textTransform: 'none' }}
-  >
-    Batch Update
-  </Button>
-</Box>
+        <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+          <Button
+            variant="contained"
+            size="small"
+            disabled={selectedItems.length !== 1}
+            sx={{ fontSize: '0.75rem', textTransform: 'none', bgcolor: '#122E3E' }}
+            onClick={handleEdit}
+          >
+            Modify
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            disabled
+            sx={{ fontSize: '0.75rem', textTransform: 'none' }}
+          >
+            Batch Update
+          </Button>
+        </Box>
 
-        {/* Right controls - Search, Filter, Export, Create */}
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Updated Search */}
           <TextField
             size="small"
             placeholder="Search..."
@@ -145,31 +159,36 @@ const Organisation = () => {
               }
             }}
           />
-
-          {/* Updated Select Dropdown */}
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel sx={{ fontSize: '0.8rem', top: '-4px' }}>Select a Query</InputLabel>
-            <Select
-              value={selectQuery}
-              label="Select a Query"
-              onChange={(e) => setSelectQuery(e.target.value)}
-              sx={{
-                height: 36,
-                borderRadius: '8px',
-                fontSize: '0.8rem',
-                backgroundColor: '#fff'
-              }}
-            >
-              <MenuItem value="All">All</MenuItem>
-              <MenuItem value="Active">Active</MenuItem>
-              <MenuItem value="Inactive">Inactive</MenuItem>
-            </Select>
-          </FormControl>
+         <FormControl size="small" sx={{ minWidth: 140 }}>
+  <InputLabel sx={{ fontSize: '0.75rem', top: '-4px' }}>Select a Query</InputLabel>
+  <Select
+    value={selectQuery}
+    label="Select a Query"
+    onChange={(e) => setSelectQuery(e.target.value)}
+    sx={{
+      height: 36,
+      borderRadius: '8px',
+      fontSize: '0.75rem',
+      backgroundColor: '#fff'
+    }}
+    MenuProps={{
+      PaperProps: {
+        sx: {
+          fontSize: '0.75rem'
+        }
+      }
+    }}
+  >
+    <MenuItem value="All" sx={{ fontSize: '0.75rem' }}>All</MenuItem>
+    <MenuItem value="Active" sx={{ fontSize: '0.75rem' }}>Active</MenuItem>
+    <MenuItem value="Inactive" sx={{ fontSize: '0.75rem' }}>Inactive</MenuItem>
+    <MenuItem value="Pending" sx={{ fontSize: '0.75rem' }}>Pending</MenuItem>
+  </Select>
+</FormControl>
 
           <IconButton onClick={handleExportToExcel} sx={{ color: 'green' }}>
             <DescriptionIcon />
           </IconButton>
-
           <Button
             variant="contained"
             size="small"
@@ -186,23 +205,21 @@ const Organisation = () => {
         </Box>
       </Box>
 
-      {/* Table */}
       <TableContainer component={Paper} elevation={1}>
         <Table size="small">
           <TableHead sx={{ backgroundColor: '#122E3E' }}>
             <TableRow>
               <TableCell padding="checkbox">
-                <input
-                  type="checkbox"
-                  checked={selectedItems.length === filtered.length}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedItems(filtered.map((_, i) => (page - 1) * itemsPerPage + i));
-                    } else {
-                      setSelectedItems([]);
-                    }
-                  }}
-                />
+            <Checkbox
+  checked={selectedItems.length === filtered.length}
+  onChange={(e) => {
+    if (e.target.checked) {
+      setSelectedItems(filtered.map((_, i) => (page - 1) * itemsPerPage + i));
+    } else {
+      setSelectedItems([]);
+    }
+  }}
+/>    
               </TableCell>
               {['name', 'type', 'industry', 'description', 'createdBy', 'status'].map(col => (
                 <TableCell
@@ -240,29 +257,40 @@ const Organisation = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  <TableCell padding="checkbox">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => { }}
-                    />
-                  </TableCell>
+            <TableCell padding="checkbox">
+  <Checkbox
+    checked={isSelected}
+    onChange={() => {}}
+  />
+</TableCell>
+
                   <TableCell sx={{ fontSize: '0.75rem' }}>{item.name}</TableCell>
                   <TableCell sx={{ fontSize: '0.75rem' }}>{item.type}</TableCell>
                   <TableCell sx={{ fontSize: '0.75rem' }}>{item.industry}</TableCell>
                   <TableCell sx={{ fontSize: '0.75rem' }}>{item.description}</TableCell>
                   <TableCell sx={{ fontSize: '0.75rem' }}>{item.createdBy}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>
-                    <Chip
-                      label={item.status}
-                      size="small"
-                      sx={{
-                        backgroundColor: item.status === 'Active' ? '#d4edda' : '#f8d7da',
-                        color: item.status === 'Active' ? '#155724' : '#721c24',
-                        fontWeight: 500
-                      }}
-                    />
-                  </TableCell>
+                 <TableCell sx={{ fontSize: '0.75rem' }}>
+  <Chip
+    label={item.status}
+    size="small"
+    sx={{
+      backgroundColor:
+        item.status === 'Active'
+          ? '#d4edda' // Light green
+          : item.status === 'Inactive'
+          ? '#f8d7da' // Light red
+          : '#fff3cd', // Light yellow for Pending
+      color:
+        item.status === 'Active'
+          ? '#155724'
+          : item.status === 'Inactive'
+          ? '#721c24'
+          : '#856404', // Dark yellow for Pending
+      fontWeight: 500
+    }}
+  />
+</TableCell>
+
                 </TableRow>
               );
             }) : (
@@ -287,49 +315,103 @@ const Organisation = () => {
         />
       </Box>
 
-      {/* Dialog Form */}
-      <Dialog open={showForm} onClose={() => setShowForm(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ bgcolor: '#f5faff', fontWeight: 600 }}>{isEditMode ? 'Edit Organisation' : 'Create Organisation'}</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          {['name', 'type', 'industry', 'description', 'createdBy'].map(field => (
-            <TextField
-              key={field}
-              label={field.charAt(0).toUpperCase() + field.slice(1)}
-              value={formData[field]}
-              onChange={e => setFormData({ ...formData, [field]: e.target.value })}
-              fullWidth
-              size="small"
-            />
-          ))}
-          <TextField
-            select
-            label="Status"
-            value={formData.status}
-            onChange={e => setFormData({ ...formData, status: e.target.value })}
-            fullWidth
-            size="small"
-          >
-            <MenuItem value="Active">Active</MenuItem>
-            <MenuItem value="Inactive">Inactive</MenuItem>
-          </TextField>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button size="small" onClick={() => setShowForm(false)}>Cancel</Button>
-          <Button size="small" variant="contained" sx={{ bgcolor: '#134ca7' }} onClick={handleAddOrUpdate}>
-            {isEditMode ? 'Update' : 'Add'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Dialog */}
+   <Dialog
+  open={showForm}
+  onClose={() => setShowForm(false)}
+  scroll="paper"
+  PaperProps={{
+    sx: {
+      maxWidth: 400,
+      width: '90%',
+      p: 1,
+      borderRadius: 2,
+      minHeight: 'unset'
+    }
+  }}
+>
+  <DialogTitle
+    sx={{
+      bgcolor: '#f5faff',
+      fontWeight: 600,
+      fontSize: '1rem',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      px: 2,
+      py: 1
+    }}
+  >
+    {isEditMode ? 'Edit Organisation' : 'Create Organisation'}
+    <IconButton onClick={() => setShowForm(false)} size="small">
+      <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" width="20" fill="gray">
+        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 
+          5 17.59 6.41 19 12 13.41 17.59 19 19 
+          17.59 13.41 12z"/>
+      </svg>
+    </IconButton>
+  </DialogTitle>
+
+  <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1, px: 2, py: 1 }}>
+    {['name', 'type', 'industry', 'description', 'createdBy'].map(field => (
+      <TextField
+        key={field}
+        label={field.charAt(0).toUpperCase() + field.slice(1)}
+        value={formData[field]}
+        onChange={e => setFormData({ ...formData, [field]: e.target.value })}
+        fullWidth
+        size="small"
+        InputProps={{ sx: { fontSize: '0.75rem' } }}
+        InputLabelProps={{ sx: { fontSize: '0.75rem' } }}
+      />
+    ))}
+    <TextField
+  select
+  label="Status"
+  value={formData.status}
+  onChange={e => setFormData({ ...formData, status: e.target.value })}
+  fullWidth
+  size="small"
+  InputLabelProps={{ style: { fontSize: '0.75rem' } }}
+  SelectProps={{
+    MenuProps: {
+      PaperProps: {
+        sx: { fontSize: '0.75rem' }
+      }
+    }
+  }}
+  sx={{
+    '& .MuiSelect-select': { fontSize: '0.75rem' }
+  }}
+>
+  <MenuItem value="Active" sx={{ fontSize: '0.75rem' }}>Active</MenuItem>
+  <MenuItem value="Inactive" sx={{ fontSize: '0.75rem' }}>Inactive</MenuItem>
+  <MenuItem value="Pending" sx={{ fontSize: '0.75rem' }}>Pending</MenuItem>
+</TextField>
+  </DialogContent>
+
+  <DialogActions sx={{ px: 2, pb: 1 }}>
+    <Button
+      size="small"
+      variant="contained"
+      onClick={handleAddOrUpdate}
+      sx={{
+        bgcolor: '#122E3E',
+        textTransform: 'none',
+        fontSize: '0.75rem',
+        px: 2,
+        py: 0.5,
+        minWidth: 80
+      }}
+    >
+      {isEditMode ? 'Update' : 'Save'}
+    </Button>
+  </DialogActions>
+</Dialog>
+
     </Box>
   );
 };
 
 export default Organisation;
-
-
-
-
-
-
-
 

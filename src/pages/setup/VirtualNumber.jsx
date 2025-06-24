@@ -3,9 +3,10 @@ import {
   Box, Typography, Table, TableBody, TableCell, TableHead, TableRow,
   Paper, Button, Checkbox, TextField, InputAdornment, IconButton,
   FormControl, InputLabel, Select, MenuItem, Dialog, DialogTitle,
-  DialogContent, DialogActions, TableSortLabel, TableContainer 
+  DialogContent, DialogActions, TableSortLabel, TableContainer
 } from '@mui/material';
 
+import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AddIcon from '@mui/icons-material/Add';
@@ -46,7 +47,6 @@ const smallerInputSx = {
     right: '8px',
   },
 };
-
 const VirtualNumber = () => {
   const [dataList, setDataList] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -55,10 +55,11 @@ const VirtualNumber = () => {
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [formData, setFormData] = useState({ id: '', virtualNumber: '', provider: '' });
   const [editingId, setEditingId] = useState(null);
 
-  const itemsPerPage = 25; // ✅ Set 25 rows per page
+  const itemsPerPage = 25;
 
   useEffect(() => {
     setDataList(mockVirtualNumbers);
@@ -66,7 +67,7 @@ const VirtualNumber = () => {
 
   const filteredData = useMemo(() => {
     let data = [...dataList];
-    if (queryFilter && queryFilter !== 'All') {
+    if (queryFilter !== 'All') {
       data = data.filter(item => item.provider === queryFilter);
     }
     if (searchTerm) {
@@ -105,7 +106,6 @@ const VirtualNumber = () => {
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
-
   const handleSave = () => {
     if (editingId !== null) {
       setDataList(dataList.map(item => item.id === editingId ? formData : item));
@@ -120,12 +120,12 @@ const VirtualNumber = () => {
   const handleDelete = () => {
     setDataList(prev => prev.filter(item => !selectedIds.includes(item.id)));
     setSelectedIds([]);
+    setShowDeleteDialog(false);
   };
 
   return (
     <Box sx={{ width: '100%', backgroundColor: '#fff', p: 2, borderRadius: 2 }}>
       <Breadcrumbs />
-
       <Typography variant="h6" sx={{ fontWeight: 600, color: '#122E3E', mb: 2 }}>
         Virtual Numbers
       </Typography>
@@ -134,10 +134,10 @@ const VirtualNumber = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', mb: 2 }}>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
-            variant="outlined"
+            variant="contained"
             size="small"
-            disabled={selectedIds.length === 0}
-            sx={{ fontSize: '0.75rem', textTransform: 'none', color: selectedIds.length ? '#122E3E' : '#aaa', borderColor: '#122E3E' }}
+            disabled={selectedIds.length !== 1}
+            sx={{ textTransform: 'none', fontSize: '0.75rem', bgcolor: '#122E3E' }}
             onClick={() => {
               const selected = dataList.find(item => item.id === selectedIds[0]);
               if (selected) {
@@ -153,24 +153,35 @@ const VirtualNumber = () => {
           <Button
             variant="outlined"
             size="small"
-            disabled={selectedIds.length === 0}
+            disabled
             sx={{ fontSize: '0.75rem', textTransform: 'none', color: 'gray', borderColor: 'gray' }}
           >
             Batch Update
           </Button>
+<Button
+  variant="contained"
+  size="small"
+  disabled={selectedIds.length === 0}
+  onClick={() => setShowDeleteDialog(true)}
+  sx={{
+    textTransform: 'none',
+    fontSize: '0.75rem',
+    bgcolor: '#122E3E', // same as Modify
+    '&:hover': {
+      bgcolor: '#0F2533', // slightly darker on hover
+    },
+    '&:disabled': {
+      bgcolor: '#e0e0e0',
+      color: '#9e9e9e',
+    },
+  }}
+>
+  Delete
+</Button>
 
-          <Button
-            variant="outlined"
-            size="small"
-            disabled={selectedIds.length === 0}
-            sx={{ fontSize: '0.75rem', textTransform: 'none', color: selectedIds.length ? 'red' : 'gray', borderColor: selectedIds.length ? 'red' : 'gray' }}
-            onClick={handleDelete}
-          >
-            Delete
-          </Button>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <TextField
             size="small"
             placeholder="Search..."
@@ -186,19 +197,18 @@ const VirtualNumber = () => {
             }}
           />
 
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel sx={{ fontSize: '0.8rem', top: '-4px' }}>Select a Query</InputLabel>
+          <FormControl size="small" sx={{ minWidth: 140, ...smallerInputSx }}>
+            <InputLabel sx={{ fontSize: '0.75rem' }}>Select a Query</InputLabel>
             <Select
               value={queryFilter}
               label="Select a Query"
               onChange={(e) => setQueryFilter(e.target.value)}
-              sx={{ height: 36, borderRadius: '8px', fontSize: '0.8rem', backgroundColor: '#fff' }}
             >
-              <MenuItem value="All">All</MenuItem>
-              <MenuItem value="Airtel">Airtel</MenuItem>
-              <MenuItem value="Jio">Jio</MenuItem>
-              <MenuItem value="BSNL">BSNL</MenuItem>
-              <MenuItem value="Vodafone Idea">Vodafone Idea</MenuItem>
+              <MenuItem value="All" sx={{ fontSize: '0.75rem' }}>All</MenuItem>
+              <MenuItem value="Airtel" sx={{ fontSize: '0.75rem' }}>Airtel</MenuItem>
+              <MenuItem value="Jio" sx={{ fontSize: '0.75rem' }}>Jio</MenuItem>
+              <MenuItem value="BSNL" sx={{ fontSize: '0.75rem' }}>BSNL</MenuItem>
+              <MenuItem value="Vodafone Idea" sx={{ fontSize: '0.75rem' }}>Vodafone Idea</MenuItem>
             </Select>
           </FormControl>
 
@@ -207,7 +217,11 @@ const VirtualNumber = () => {
             sx={{ color: 'green' }}
             title="Export to Excel"
             onClick={() => {
-              const worksheet = XLSX.utils.json_to_sheet(dataList);
+              const exportData = dataList.map(({ id, ...rest }) => ({
+                'Virtual Number': rest.virtualNumber,
+                'Provider': rest.provider
+              }));
+              const worksheet = XLSX.utils.json_to_sheet(exportData);
               const workbook = XLSX.utils.book_new();
               XLSX.utils.book_append_sheet(workbook, worksheet, 'VirtualNumbers');
               XLSX.writeFile(workbook, 'virtual_numbers.xlsx');
@@ -227,11 +241,11 @@ const VirtualNumber = () => {
             }}
             sx={{ bgcolor: '#122E3E', textTransform: 'none', fontSize: '0.75rem' }}
           >
-             Create
+            Create
           </Button>
         </Box>
       </Box>
-
+      {/* Table */}
 <TableContainer component={Paper}>
   <Table size="small">
     <TableHead sx={{ backgroundColor: '#122E3E' }}>
@@ -291,21 +305,29 @@ const VirtualNumber = () => {
     </TableHead>
 
     <TableBody>
-      {filteredData
-        .slice((page - 1) * itemsPerPage, page * itemsPerPage)
-        .map((item) => (
-          <TableRow key={item.id} hover>
-            <TableCell padding="checkbox">
-              <Checkbox
-                checked={selectedIds.includes(item.id)}
-                onChange={() => handleSelect(item.id)}
-              />
-            </TableCell>
-            <TableCell sx={{ fontSize: '0.75rem' }}>{item.id}</TableCell>
-            <TableCell sx={{ fontSize: '0.75rem' }}>{item.virtualNumber}</TableCell>
-            <TableCell sx={{ fontSize: '0.75rem' }}>{item.provider}</TableCell>
-          </TableRow>
-        ))}
+      {filteredData.length === 0 ? (
+        <TableRow>
+          <TableCell colSpan={4} align="center" sx={{ fontSize: '0.8rem' }}>
+            No records found
+          </TableCell>
+        </TableRow>
+      ) : (
+        filteredData
+          .slice((page - 1) * itemsPerPage, page * itemsPerPage)
+          .map((item) => (
+            <TableRow key={item.id} hover>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={selectedIds.includes(item.id)}
+                  onChange={() => handleSelect(item.id)}
+                />
+              </TableCell>
+              <TableCell sx={{ fontSize: '0.75rem' }}>{item.id}</TableCell>
+              <TableCell sx={{ fontSize: '0.75rem' }}>{item.virtualNumber}</TableCell>
+              <TableCell sx={{ fontSize: '0.75rem' }}>{item.provider}</TableCell>
+            </TableRow>
+          ))
+      )}
     </TableBody>
   </Table>
 </TableContainer>
@@ -319,47 +341,91 @@ const VirtualNumber = () => {
   />
 </Box>
 
-      {/* Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingId !== null ? 'Edit Virtual Number' : 'Create Virtual Number'}</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField
-            label="ID"
-            value={formData.id}
-            onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-            fullWidth
-            size="small"
-          />
-          <TextField
-            label="Virtual Number"
-            value={formData.virtualNumber}
-            onChange={(e) => setFormData({ ...formData, virtualNumber: e.target.value })}
-            fullWidth
-            size="small"
-          />
-          <FormControl size="small" fullWidth>
-            <InputLabel>Select a Query</InputLabel>
-            <Select
-              value={formData.provider}
-              onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-              label="Select a Query"
-            >
-              <MenuItem value="Airtel">Airtel</MenuItem>
-              <MenuItem value="Jio">Jio</MenuItem>
-              <MenuItem value="BSNL">BSNL</MenuItem>
-              <MenuItem value="Vodafone Idea">Vodafone Idea</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button size="small" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button size="small" variant="contained" onClick={handleSave}>
-            {editingId !== null ? 'Update' : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+{/* Modify Dialog */}
+<Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
+  <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    {editingId !== null ? 'Edit Virtual Number' : 'Create Virtual Number'}
+    <IconButton onClick={() => setOpen(false)} size="small">
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+  <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+    <TextField
+      label="ID"
+      value={formData.id}
+      onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+      fullWidth
+      size="small"
+      sx={{ ...smallerInputSx, mt: 1 }}
+    />
+    <TextField
+      label="Virtual Number"
+      value={formData.virtualNumber}
+      onChange={(e) => setFormData({ ...formData, virtualNumber: e.target.value })}
+      fullWidth
+      size="small"
+      sx={{ ...smallerInputSx, mt: 1 }}
+    />
+    <FormControl size="small" fullWidth sx={{ ...smallerInputSx, mt: 1 }}>
+      <InputLabel>Select a Query</InputLabel>
+      <Select
+        value={formData.provider}
+        onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+        label="Select a Query"
+      >
+        <MenuItem value="Airtel" sx={{ fontSize: '0.75rem' }}>Airtel</MenuItem>
+        <MenuItem value="Jio" sx={{ fontSize: '0.75rem' }}>Jio</MenuItem>
+        <MenuItem value="BSNL" sx={{ fontSize: '0.75rem' }}>BSNL</MenuItem>
+        <MenuItem value="Vodafone Idea" sx={{ fontSize: '0.75rem' }}>Vodafone Idea</MenuItem>
+      </Select>
+    </FormControl>
+  </DialogContent>
+  <DialogActions sx={{ pr: 3, pb: 2 }}>
+    <Button
+      size="small"
+      variant="contained"
+      onClick={handleSave}
+      sx={{ textTransform: 'none', fontSize: '0.75rem', bgcolor: '#122E3E' }}
+    >
+      {editingId !== null ? 'Update' : 'Save'}
+    </Button>
+  </DialogActions>
+</Dialog>
+
+{/* Delete Dialog */}
+<Dialog open={showDeleteDialog} onClose={() => setShowDeleteDialog(false)} maxWidth="xs" fullWidth>
+  <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    Confirm Delete
+    <IconButton onClick={() => setShowDeleteDialog(false)} size="small">
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+  <DialogContent>
+    <Typography sx={{ fontSize: '0.85rem' }}>
+      Are you sure you want to delete the selected {selectedIds.length} {selectedIds.length > 1 ? 'records' : 'record'}?
+    </Typography>
+  </DialogContent>
+<DialogActions sx={{ pr: 3, pb: 2 }}>
+  <Button
+    size="small"
+    variant="contained"
+    onClick={handleDelete}
+    sx={{
+      textTransform: 'none',
+      fontSize: '0.75rem',
+      bgcolor: '#122E3E', // same as Modify
+      '&:hover': {
+        bgcolor: '#0F2533', // consistent hover
+      },
+    }}
+  >
+    Delete
+  </Button>
+</DialogActions>
+</Dialog>
+
     </Box>
   );
 };
-
 export default VirtualNumber;
+
