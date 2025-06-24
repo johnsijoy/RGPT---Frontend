@@ -348,24 +348,6 @@ export default function Slabrate() {
     XLSX.writeFile(workbook, 'slab_rates.xlsx');
   };
 
-  // Common button styles with conditional colors
-  const getButtonSx = (enabled) => ({
-    fontSize: '0.75rem',
-    textTransform: 'none',
-    padding: '4px 10px',
-    backgroundColor: enabled ? '#162F40' : '#D8BFF7 !important',
-    color: enabled ? '#fff' : '#162F40 !important',
-    pointerEvents: 'auto',
-    '&:hover': {
-      backgroundColor: enabled ? '#121f2a' : '#D8BFF7 !important',
-    },
-    '&.Mui-disabled': {
-      backgroundColor: '#D8BFF7 !important',
-      color: '#162F40 !important',
-      opacity: 1,
-    },
-  });
-
   return (
     <Box sx={{ p: 3, width: '100%' }}>
       <Box mb={2}>

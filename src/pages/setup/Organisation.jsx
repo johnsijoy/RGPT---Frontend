@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, TextField, Button, Table, TableHead, TableBody, TableRow,
   TableCell, TableContainer, Paper, TableSortLabel, Dialog,
-  DialogTitle, DialogContent, DialogActions, Chip, MenuItem,
+  DialogContent, DialogActions, Chip, MenuItem,
   IconButton, Select, InputLabel, FormControl, InputAdornment
 } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
