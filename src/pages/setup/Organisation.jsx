@@ -332,27 +332,35 @@ const handleExportToExcel = () => {
     }
   }}
 >
-  <DialogTitle
-    sx={{
-      bgcolor: '#f5faff',
-      fontWeight: 600,
-      fontSize: '1rem',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      px: 2,
-      py: 1
+<Box
+  sx={{
+    backgroundColor: '#f5faff',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '8px 16px',
+    fontWeight: 600,
+    fontSize: '1rem'
+  }}
+>
+  <div>{isEditMode ? 'Edit Organisation' : 'Create Organisation'}</div>
+  <button
+    onClick={() => setShowForm(false)}
+    style={{
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: 0
     }}
   >
-    {isEditMode ? 'Edit Organisation' : 'Create Organisation'}
-    <IconButton onClick={() => setShowForm(false)} size="small">
-      <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" width="20" fill="gray">
-        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 
-          5 17.59 6.41 19 12 13.41 17.59 19 19 
-          17.59 13.41 12z"/>
-      </svg>
-    </IconButton>
-  </DialogTitle>
+    <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" width="20" fill="gray">
+      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 
+        5 17.59 6.41 19 12 13.41 17.59 19 19 
+        17.59 13.41 12z"/>
+    </svg>
+  </button>
+</Box>
+
 
   <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1, px: 2, py: 1 }}>
     {['name', 'type', 'industry', 'description', 'createdBy'].map(field => (
