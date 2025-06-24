@@ -1,4 +1,4 @@
-// --- Localities.jsx (updated to match Areas.jsx styling/logic) ---
+// --- Localities.jsx (Floating Label Fixed for All Fields) ---
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer,
@@ -17,8 +17,26 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import Pagination from '../../components/common/Pagination';
-
 import mockLocalities from '../../mock/localities';
+
+const floatingInputSx = {
+  '& label': {
+    fontSize: '0.75rem',
+    transform: 'translate(14px, 9px) scale(1)',
+    transition: 'all 0.2s ease',
+  },
+  '& label.Mui-focused, & label.MuiInputLabel-shrink': {
+    transform: 'translate(14px, -7px) scale(0.75) !important',
+    transformOrigin: 'top left',
+  },
+  '& .MuiOutlinedInput-root': {
+    fontSize: '0.75rem',
+    height: 36,
+    '& input': {
+      padding: '8.5px 14px',
+    },
+  },
+};
 
 const Breadcrumbs = () => {
   const navigate = useNavigate();
@@ -73,9 +91,7 @@ const Localities = () => {
 
   const renderSortIcon = (key) => {
     if (sortConfig.key !== key) return null;
-    return sortConfig.direction === 'asc'
-      ? <ArrowUpwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
-      : <ArrowDownwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />;
+    return sortConfig.direction === 'asc' ? <ArrowUpwardIcon sx={{ fontSize: '0.9rem' }} /> : <ArrowDownwardIcon sx={{ fontSize: '0.9rem' }} />;
   };
 
   const handleSelectRow = (index) => {
@@ -149,8 +165,14 @@ const Localities = () => {
             sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', padding: '4px 10px', textTransform: 'none' }}>
             Delete
           </Button>
-          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>Audit Trail</Button>
-          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>Batch Update</Button>
+          <Button variant="contained" size="small" disabled
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', textTransform: 'none' }}>
+            Audit Trail
+          </Button>
+          <Button variant="contained" size="small" disabled
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', textTransform: 'none' }}>
+            Batch Update
+          </Button>
         </Stack>
 
         <Stack direction="row" spacing={1}>
@@ -172,8 +194,7 @@ const Localities = () => {
           <IconButton size="small" onClick={handleExport} sx={{ height: 28, width: 36, color: 'green' }}>
             <DescriptionIcon sx={{ fontSize: '1.4rem' }} />
           </IconButton>
-          <Button variant="contained" size="small"
-            onClick={() => { setFormData({ name: '', description: '', area: '' }); setEditIndex(null); setOpen(true); }}
+          <Button variant="contained" size="small" onClick={() => { setFormData({ name: '', description: '', area: '' }); setEditIndex(null); setOpen(true); }}
             sx={{ bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', height: 28, px: 1.5, textTransform: 'none' }}
             startIcon={<AddIcon sx={{ fontSize: '1rem' }} />}>
             Create
@@ -181,54 +202,55 @@ const Localities = () => {
         </Stack>
       </Box>
 
-      <Paper>
-        <TableContainer>
-          <Table size="small">
-            <TableHead sx={{ bgcolor: '#122E3E' }}>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    checked={paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))}
-                    indeterminate={selectedRows.some((i) => paginatedData.some((_, idx) => i === (page - 1) * rowsPerPage + idx)) && !paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    sx={{ color: '#fff', padding: 0 }}
-                  />
+      <TableContainer component={Paper}>
+        <Table size="small">
+          <TableHead sx={{ bgcolor: '#122E3E' }}>
+            <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))}
+                  indeterminate={
+                    selectedRows.some((i) => paginatedData.some((_, idx) => i === (page - 1) * rowsPerPage + idx)) &&
+                    !paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))
+                  }
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  sx={{ color: '#fff', padding: 0 }}
+                />
+              </TableCell>
+              {['name', 'description', 'area'].map((col) => (
+                <TableCell key={col} onClick={() => handleSort(col)} sx={{ cursor: 'pointer', color: '#fff', fontSize: '0.8rem' }}>
+                  {col.charAt(0).toUpperCase() + col.slice(1)} {renderSortIcon(col)}
                 </TableCell>
-                {['name', 'description', 'area'].map((col) => (
-                  <TableCell key={col} onClick={() => handleSort(col)} sx={{ cursor: 'pointer', color: '#fff', fontSize: '0.8rem' }}>
-                    {col.charAt(0).toUpperCase() + col.slice(1)} {renderSortIcon(col)}
-                  </TableCell>
-                ))}
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center">No records found.</TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} align="center">No records found.</TableCell>
-                </TableRow>
-              ) : (
-                paginatedData.map((row, i) => {
-                  const idx = (page - 1) * rowsPerPage + i;
-                  return (
-                    <TableRow key={idx} selected={selectedRows.includes(idx)} hover>
-                      <TableCell padding="checkbox">
-                        <Checkbox checked={selectedRows.includes(idx)} onChange={() => handleSelectRow(idx)} />
-                      </TableCell>
-                      <TableCell sx={{ fontSize: '0.75rem' }}>{row.name}</TableCell>
-                      <TableCell sx={{ fontSize: '0.75rem' }}>{row.description}</TableCell>
-                      <TableCell sx={{ fontSize: '0.75rem' }}>{row.area}</TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            ) : (
+              paginatedData.map((row, i) => {
+                const idx = (page - 1) * rowsPerPage + i;
+                return (
+                  <TableRow key={idx} selected={selectedRows.includes(idx)} hover>
+                    <TableCell padding="checkbox">
+                      <Checkbox checked={selectedRows.includes(idx)} onChange={() => handleSelectRow(idx)} />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem' }}>{row.name}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem' }}>{row.description}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem' }}>{row.area}</TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-        <Box mt={2} display="flex" justifyContent="flex-end">
-          <Pagination count={Math.ceil(sorted.length / rowsPerPage)} page={page} onChange={(p) => setPage(p)} size="small" />
-        </Box>
-      </Paper>
+      <Box mt={2} display="flex" justifyContent="flex-end">
+        <Pagination count={Math.ceil(sorted.length / rowsPerPage)} page={page} onChange={(p) => setPage(p)} size="small" />
+      </Box>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
         <DialogTitle sx={{ fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#122E3E' }}>
@@ -237,25 +259,29 @@ const Localities = () => {
             <CloseIcon sx={{ fontSize: '1.1rem', color: '#122E3E' }} />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ px: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {['name', 'description', 'area'].map(field => (
-            <TextField
-              key={field}
-              label={field.charAt(0).toUpperCase() + field.slice(1)}
-              fullWidth
-              size="small"
-              value={formData[field]}
-              onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-              sx={{
-                fontSize: '0.75rem',
-                '& .MuiInputBase-input': { fontSize: '0.75rem' },
-                '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-              }}
-            />
-          ))}
-        </DialogContent>
+        <DialogContent sx={{ px: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+  {['name', 'description', 'area'].map((field, index) => (
+    <TextField
+      key={field}
+      label={field.charAt(0).toUpperCase() + field.slice(1)}
+      fullWidth
+      size="small"
+      value={formData[field] || ''}
+      onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+      sx={{
+        ...floatingInputSx,
+        ...(index === 0 && { mt: 2 }) // extra top margin only for the first field (name)
+      }}
+    />
+  ))}
+</DialogContent>
+
+
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <Button variant="contained" size="small" onClick={handleCreateOrUpdate} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', px: 2 }}>Save</Button>
+          <Button variant="contained" size="small" onClick={handleCreateOrUpdate}
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', px: 2 }}>
+            Save
+          </Button>
         </Box>
       </Dialog>
 
@@ -266,11 +292,14 @@ const Localities = () => {
             <CloseIcon sx={{ fontSize: '1.1rem' }} />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ fontSize: '0.875rem' }}>
+        <DialogContent sx={{ fontSize: '0.875rem' }}>
           Are you sure you want to delete selected locality?
         </DialogContent>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <Button variant="contained" size="small" onClick={confirmDelete} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>Delete</Button>
+          <Button variant="contained" size="small" onClick={confirmDelete}
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>
+            Delete
+          </Button>
         </Box>
       </Dialog>
     </Box>
