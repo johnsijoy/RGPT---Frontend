@@ -1,9 +1,10 @@
+// --- Areas.jsx (fully updated styling) ---
 import React, { useState } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, TextField, Button,
-  InputAdornment, IconButton, Dialog, DialogTitle,
-  DialogContent, Checkbox, Stack
+  TableHead, TableRow, Paper, TextField, Button, Checkbox,
+  Dialog, DialogTitle, DialogContent, InputAdornment,
+  IconButton, Stack
 } from '@mui/material';
 
 import SearchIcon from '@mui/icons-material/Search';
@@ -12,7 +13,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-
+import * as XLSX from 'xlsx';
 import { useNavigate } from 'react-router-dom';
 import areas from '../../mock/areas';
 import Pagination from '../../components/common/Pagination';
@@ -62,10 +63,7 @@ const Areas = () => {
     }
   };
 
-  const handleDelete = () => {
-    setDeleteConfirmOpen(true);
-  };
-
+  const handleDelete = () => setDeleteConfirmOpen(true);
   const confirmDelete = () => {
     selectedRows.sort((a, b) => b - a).forEach((idx) => areas.splice(idx, 1));
     setSelectedRows([]);
@@ -73,25 +71,19 @@ const Areas = () => {
   };
 
   const handleDownload = () => {
-    const csv = [
-      ['Area Name', 'City', 'State', 'Country'],
-      ...areas.map(({ name, city, state, country }) => [name, city, state, country])
-    ].map(row => row.join(',')).join('\n');
+  const headers = [["Area Name", "City", "State", "Country"]];
+  const rows = areas.map(({ name, city, state, country }) => [name, city, state, country]);
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'areas.xlsx';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
+  const worksheet = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Areas');
+  XLSX.writeFile(workbook, 'areas.xlsx');
+};
 
+    
   const handleSort = (key) => {
     let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
     setSortConfig({ key, direction });
   };
 
@@ -124,37 +116,26 @@ const Areas = () => {
   }
 
   const paginatedData = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-
-  const renderSortIcon = (key) => {
-    if (sortConfig.key !== key) return null;
-    return sortConfig.direction === 'asc' ? (
-      <ArrowUpwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
-    ) : (
-      <ArrowDownwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
-    );
-  };
+  const renderSortIcon = (key) => sortConfig.key === key ? (
+    sortConfig.direction === 'asc'
+      ? <ArrowUpwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
+      : <ArrowDownwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
+  ) : null;
 
   return (
     <Box sx={{ padding: 2, backgroundColor: '#fff', borderRadius: 2 }}>
       <Breadcrumbs />
-
-      <Typography variant="h6" sx={{ fontWeight: 600, color: '#122E3E', mb: 1, fontSize: '1rem' }}>
-        Areas
-      </Typography>
+      <Typography variant="h6" sx={{ fontWeight: 600, color: '#122E3E', mb: 1, fontSize: '1rem' }}>Areas</Typography>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 2 }}>
         <Stack direction="row" spacing={1}>
-          <Button variant="contained" size="small" onClick={handleModify} disabled={selectedRows.length !== 1} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>
+          <Button variant="contained" size="small" onClick={handleModify} disabled={selectedRows.length !== 1}
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', padding: '4px 10px', textTransform: 'none' }}>
             Modify
           </Button>
-          <Button variant="contained" size="small" onClick={handleDelete} disabled={selectedRows.length === 0} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>
+          <Button variant="contained" size="small" onClick={handleDelete} disabled={selectedRows.length === 0}
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', padding: '4px 10px', textTransform: 'none' }}>
             Delete
-          </Button>
-          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>
-            Audit Trail
-          </Button>
-          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>
-            Batch Update
           </Button>
         </Stack>
 
@@ -165,7 +146,11 @@ const Areas = () => {
             placeholder="Search..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { height: 28 }, input: { fontSize: '0.75rem', padding: '4px 8px' } }}
+            sx={{
+              minWidth: 160,
+              '& .MuiOutlinedInput-root': { height: 28 },
+              input: { fontSize: '0.75rem', padding: '4px 8px' }
+            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -175,11 +160,14 @@ const Areas = () => {
             }}
           />
 
-          <IconButton size="small" onClick={handleDownload} sx={{ height: 28, width: 36, color: 'green' }}>
+          <IconButton size="small" onClick={handleDownload} sx={{ height: 28, width: 36, color: 'green' }} title="Download as Excel">
             <DescriptionIcon sx={{ fontSize: '1.4rem' }} />
           </IconButton>
 
-          <Button variant="contained" size="small" startIcon={<AddIcon sx={{ fontSize: '1rem' }} />} sx={{ bgcolor: '#122E3E', textTransform: 'none', fontSize: '0.75rem', height: 28, px: 1.5 }} onClick={() => { setFormData({ name: '', city: '', state: '', country: '' }); setEditIndex(null); setOpen(true); }}>
+          <Button variant="contained" size="small"
+            onClick={() => { setFormData({ name: '', city: '', state: '', country: '' }); setEditIndex(null); setOpen(true); }}
+            sx={{ bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', height: 28, px: 1.5, textTransform: 'none' }}
+            startIcon={<AddIcon sx={{ fontSize: '1rem' }} />}>
             Create
           </Button>
         </Stack>
@@ -195,23 +183,17 @@ const Areas = () => {
                     checked={paginatedData.every((_, i) =>
                       selectedRows.includes((page - 1) * rowsPerPage + i)
                     )}
-                    indeterminate={
-                      selectedRows.some((i) =>
-                        paginatedData.some((_, idx) => i === (page - 1) * rowsPerPage + idx)
-                      ) && !paginatedData.every((_, i) =>
-                        selectedRows.includes((page - 1) * rowsPerPage + i)
-                      )
-                    }
+                    indeterminate={selectedRows.some((i) =>
+                      paginatedData.some((_, idx) => i === (page - 1) * rowsPerPage + idx)
+                    ) && !paginatedData.every((_, i) =>
+                      selectedRows.includes((page - 1) * rowsPerPage + i)
+                    )}
                     onChange={(e) => handleSelectAll(e.target.checked)}
                     sx={{ color: '#fff', padding: 0 }}
                   />
                 </TableCell>
                 {['name', 'city', 'state', 'country'].map((col) => (
-                  <TableCell
-                    key={col}
-                    onClick={() => handleSort(col)}
-                    sx={{ cursor: 'pointer', color: '#fff', fontSize: '0.8rem' }}
-                  >
+                  <TableCell key={col} onClick={() => handleSort(col)} sx={{ cursor: 'pointer', color: '#fff', fontSize: '0.8rem' }}>
                     {col.charAt(0).toUpperCase() + col.slice(1)} {renderSortIcon(col)}
                   </TableCell>
                 ))}
@@ -228,10 +210,7 @@ const Areas = () => {
                   return (
                     <TableRow key={idx} selected={selectedRows.includes(idx)} hover>
                       <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={selectedRows.includes(idx)}
-                          onChange={() => handleSelectRow(idx)}
-                        />
+                        <Checkbox checked={selectedRows.includes(idx)} onChange={() => handleSelectRow(idx)} />
                       </TableCell>
                       <TableCell sx={{ fontSize: '0.75rem' }}>{row.name}</TableCell>
                       <TableCell sx={{ fontSize: '0.75rem' }}>{row.city}</TableCell>
@@ -263,42 +242,29 @@ const Areas = () => {
             <CloseIcon sx={{ fontSize: '1.1rem', color: '#122E3E' }} />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ px: 3 }}>
-          <TextField
-            label="Area Name"
-            fullWidth margin="dense"
-            size="small"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-          <TextField
-            label="City"
-            fullWidth margin="dense"
-            size="small"
-            value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-          />
-          <TextField
-            label="State"
-            fullWidth margin="dense"
-            size="small"
-            value={formData.state}
-            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-          />
-          <TextField
-            label="Country"
-            fullWidth margin="dense"
-            size="small"
-            value={formData.country}
-            onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-          />
+        <DialogContent dividers sx={{ px: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {['name', 'city', 'state', 'country'].map(field => (
+            <TextField
+              key={field}
+              label={field.charAt(0).toUpperCase() + field.slice(1)}
+              fullWidth
+              size="small"
+              value={formData[field]}
+              onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+              sx={{
+                fontSize: '0.75rem',
+                '& .MuiInputBase-input': { fontSize: '0.75rem' },
+                '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+              }}
+            />
+          ))}
         </DialogContent>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
           <Button
             variant="contained"
             size="small"
             onClick={handleCreateOrUpdate}
-            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', px: 2 }}
           >
             Save
           </Button>
@@ -308,13 +274,13 @@ const Areas = () => {
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle sx={{ fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#122E3E' }}>
-          Confirm Deletion
+          Confirm Delete
           <IconButton size="small" onClick={() => setDeleteConfirmOpen(false)}>
-            <CloseIcon sx={{ fontSize: '1.1rem', color: '#122E3E' }} />
+            <CloseIcon sx={{ fontSize: '1.1rem' }} />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
-          Are you sure you want to delete {selectedRows.length} record(s)?
+        <DialogContent dividers sx={{ fontSize: '0.875rem' }}>
+          Are you sure you want to delete selected area?
         </DialogContent>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
           <Button
