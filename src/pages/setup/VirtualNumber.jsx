@@ -350,35 +350,45 @@ const VirtualNumber = () => {
     </IconButton>
   </DialogTitle>
   <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-    <TextField
-      label="ID"
-      value={formData.id}
-      onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-      fullWidth
-      size="small"
-      sx={{ ...smallerInputSx, mt: 1 }}
-    />
-    <TextField
-      label="Virtual Number"
-      value={formData.virtualNumber}
-      onChange={(e) => setFormData({ ...formData, virtualNumber: e.target.value })}
-      fullWidth
-      size="small"
-      sx={{ ...smallerInputSx, mt: 1 }}
-    />
-    <FormControl size="small" fullWidth sx={{ ...smallerInputSx, mt: 1 }}>
-      <InputLabel>Select a Query</InputLabel>
-      <Select
-        value={formData.provider}
-        onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-        label="Select a Query"
-      >
-        <MenuItem value="Airtel" sx={{ fontSize: '0.75rem' }}>Airtel</MenuItem>
-        <MenuItem value="Jio" sx={{ fontSize: '0.75rem' }}>Jio</MenuItem>
-        <MenuItem value="BSNL" sx={{ fontSize: '0.75rem' }}>BSNL</MenuItem>
-        <MenuItem value="Vodafone Idea" sx={{ fontSize: '0.75rem' }}>Vodafone Idea</MenuItem>
-      </Select>
-    </FormControl>
+   
+<TextField
+  label="ID"
+  value={formData.id}
+  onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+  fullWidth
+  size="small"
+  InputProps={{ sx: { fontSize: '0.75rem' } }}
+  InputLabelProps={{ sx: { fontSize: '0.75rem' } }}
+  sx={{ mt: 1 }}
+/>
+<TextField
+  label="Virtual Number"
+  value={formData.virtualNumber}
+  onChange={(e) => setFormData({ ...formData, virtualNumber: e.target.value })}
+  fullWidth
+  size="small"
+  InputProps={{ sx: { fontSize: '0.75rem' } }}
+  InputLabelProps={{ sx: { fontSize: '0.75rem' } }}
+  sx={{ mt: 1 }}
+/>
+
+   
+    <FormControl size="small" fullWidth sx={{ mt: 1 }}>
+  <InputLabel sx={{ fontSize: '0.75rem' }}>Select a Query</InputLabel>
+  <Select
+    value={formData.provider}
+    onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+    label="Select a Query"
+    sx={{ fontSize: '0.75rem' }}
+    MenuProps={{ PaperProps: { sx: { fontSize: '0.75rem' } } }}
+  >
+    <MenuItem value="Airtel" sx={{ fontSize: '0.75rem' }}>Airtel</MenuItem>
+    <MenuItem value="Jio" sx={{ fontSize: '0.75rem' }}>Jio</MenuItem>
+    <MenuItem value="BSNL" sx={{ fontSize: '0.75rem' }}>BSNL</MenuItem>
+    <MenuItem value="Vodafone Idea" sx={{ fontSize: '0.75rem' }}>Vodafone Idea</MenuItem>
+  </Select>
+</FormControl>
+
   </DialogContent>
   <DialogActions sx={{ pr: 3, pb: 2 }}>
     <Button
