@@ -194,6 +194,7 @@ const Countries = () => {
             </TableBody>
           </Table>
         </TableContainer>
+      </Paper>
 
         {/* Pagination */}
         <Box mt={2} display="flex" justifyContent="flex-end">
@@ -204,7 +205,7 @@ const Countries = () => {
             size="small"
           />
         </Box>
-      </Paper>
+
 
       {/* Create Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
@@ -221,7 +222,7 @@ const Countries = () => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent>
           {['name', 'code', 'description'].map((field) => (
             <TextField
               key={field}
