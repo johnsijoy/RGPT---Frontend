@@ -25,7 +25,19 @@ const areas = [
   { name: 'Andheri East', city: 'Mumbai', state: 'Maharashtra', country: 'India' },
   { name: 'Kothrud', city: 'Pune', state: 'Maharashtra', country: 'India' },
   { name: 'Abu Dhabi Industrial Area', city: 'Abu Dhabi', state: 'Abu Dhabi', country: 'UAE' },
-  { name: 'Gachibowli', city: 'Hyderabad', state: 'Telangana', country: 'India' }
+  { name: 'Gachibowli', city: 'Hyderabad', state: 'Telangana', country: 'India' },
+  { name: 'Banjara Hills', city: 'Hyderabad', state: 'Telangana', country: 'India' },
+  { name: 'Electronic City', city: 'Bangalore', state: 'Karnataka', country: 'India' },
+  { name: 'Brookefield', city: 'Bangalore', state: 'Karnataka', country: 'India' },
+  { name: 'Marathahalli', city: 'Bangalore', state: 'Karnataka', country: 'India' },
+  { name: 'Kondapur', city: 'Hyderabad', state: 'Telangana', country: 'India' },
+  { name: 'Manikonda', city: 'Hyderabad', state: 'Telangana', country: 'India' },
+  { name: 'Porur', city: 'Chennai', state: 'Tamil Nadu', country: 'India' },
+  { name: 'Velachery', city: 'Chennai', state: 'Tamil Nadu', country: 'India' },
+  { name: 'Thiruvanmiyur', city: 'Chennai', state: 'Tamil Nadu', country: 'India' },
+  { name: 'Perungudi', city: 'Chennai', state: 'Tamil Nadu', country: 'India' },
+  { name: 'Adyar', city: 'Chennai', state: 'Tamil Nadu', country: 'India' },
+  { name: 'Salt Lake', city: 'Kolkata', state: 'West Bengal', country: 'India' }
 ];
 
 export default areas;
