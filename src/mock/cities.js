@@ -32,8 +32,7 @@ const mockCities = [
   { name: 'Osaka', state: 'Osaka', country: 'Japan' },
   { name: 'Seoul', state: 'Seoul', country: 'South Korea' },
   { name: 'Bangkok', state: 'Bangkok', country: 'Thailand' },
-  { name: 'Dubai', state: 'Dubai', country: 'UAE' },
-  { name: 'Singapore', state: 'Singapore', country: 'Singapore' }
+  { name: 'Dubai', state: 'Dubai', country: 'UAE' }
 ];
 
 export default mockCities;

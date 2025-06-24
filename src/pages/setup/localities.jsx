@@ -1,3 +1,4 @@
+// --- Localities.jsx (updated to match Areas.jsx styling/logic) ---
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer,
@@ -48,22 +49,20 @@ const Localities = () => {
     setRecords(mockLocalities);
   }, []);
 
-  const filteredRecords = records.filter((r) =>
+  const filtered = records.filter((r) =>
     r.name.toLowerCase().includes(query.toLowerCase()) ||
     r.description.toLowerCase().includes(query.toLowerCase()) ||
     r.area.toLowerCase().includes(query.toLowerCase())
   );
 
-  const sortedRecords = [...filteredRecords].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     if (!sortConfig.key) return 0;
     const aVal = a[sortConfig.key].toLowerCase();
     const bVal = b[sortConfig.key].toLowerCase();
-    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-    return 0;
+    return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
   });
 
-  const paginatedData = sortedRecords.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  const paginatedData = sorted.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   const handleSort = (key) => {
     setSortConfig((prev) => ({
@@ -74,24 +73,9 @@ const Localities = () => {
 
   const renderSortIcon = (key) => {
     if (sortConfig.key !== key) return null;
-    return sortConfig.direction === 'asc' ? (
-      <ArrowUpwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
-    ) : (
-      <ArrowDownwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
-    );
-  };
-
-  const handleCreateOrUpdate = () => {
-    const updatedRecords = [...records];
-    if (editIndex !== null) {
-      updatedRecords[editIndex] = { ...formData };
-    } else {
-      updatedRecords.push({ ...formData });
-    }
-    setRecords(updatedRecords);
-    setFormData({ name: '', description: '', area: '' });
-    setOpen(false);
-    setEditIndex(null);
+    return sortConfig.direction === 'asc'
+      ? <ArrowUpwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
+      : <ArrowDownwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />;
   };
 
   const handleSelectRow = (index) => {
@@ -101,18 +85,30 @@ const Localities = () => {
   };
 
   const handleSelectAll = (checked) => {
-    const start = (page - 1) * rowsPerPage;
-    const end = page * rowsPerPage;
-    const indexes = sortedRecords.slice(start, end).map((_, i) => start + i);
-    setSelectedRows(checked ? indexes : selectedRows.filter(i => !indexes.includes(i)));
+    const allIndexes = paginatedData.map((_, idx) => (page - 1) * rowsPerPage + idx);
+    setSelectedRows(checked ? allIndexes : []);
   };
 
-  const handleDelete = () => {
-    setDeleteConfirmOpen(true);
+  const handleCreateOrUpdate = () => {
+    const updated = [...records];
+    if (editIndex !== null) {
+      updated[editIndex] = { ...formData };
+    } else {
+      updated.push({ ...formData });
+    }
+    setRecords(updated);
+    setFormData({ name: '', description: '', area: '' });
+    setOpen(false);
+    setEditIndex(null);
+    setSelectedRows([]);
   };
+
+  const handleDelete = () => setDeleteConfirmOpen(true);
 
   const confirmDelete = () => {
-    setRecords((prev) => prev.filter((_, i) => !selectedRows.includes(i)));
+    const updated = [...records];
+    selectedRows.sort((a, b) => b - a).forEach((i) => updated.splice(i, 1));
+    setRecords(updated);
     setSelectedRows([]);
     setDeleteConfirmOpen(false);
   };
@@ -127,39 +123,34 @@ const Localities = () => {
   };
 
   const handleExport = () => {
-    const data = records.map((row) => ({
-      'Locality Name': row.name,
-      'Description': row.description,
-      'Area': row.area
+    const data = records.map(({ name, description, area }) => ({
+      'Locality Name': name,
+      'Description': description,
+      'Area': area
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Localities');
-    XLSX.writeFile(wb, 'Localities.xlsx');
+    XLSX.writeFile(wb, 'localities.xlsx');
   };
 
   return (
     <Box sx={{ padding: 2, backgroundColor: '#fff', borderRadius: 2 }}>
       <Breadcrumbs />
-
-      <Typography variant="h6" sx={{ fontWeight: 600, color: '#122E3E', mb: 1, fontSize: '1rem' }}>
-        Localities
-      </Typography>
+      <Typography variant="h6" sx={{ fontWeight: 600, color: '#122E3E', mb: 1, fontSize: '1rem' }}>Localities</Typography>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 2 }}>
         <Stack direction="row" spacing={1}>
-          <Button variant="contained" size="small" onClick={handleModify} disabled={selectedRows.length !== 1} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>
+          <Button variant="contained" size="small" onClick={handleModify} disabled={selectedRows.length !== 1}
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', padding: '4px 10px', textTransform: 'none' }}>
             Modify
           </Button>
-          <Button variant="contained" size="small" onClick={handleDelete} disabled={selectedRows.length === 0} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>
+          <Button variant="contained" size="small" onClick={handleDelete} disabled={selectedRows.length === 0}
+            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', padding: '4px 10px', textTransform: 'none' }}>
             Delete
           </Button>
-          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>
-            Audit Trail
-          </Button>
-          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>
-            Batch Update
-          </Button>
+          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>Audit Trail</Button>
+          <Button variant="contained" size="small" disabled sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>Batch Update</Button>
         </Stack>
 
         <Stack direction="row" spacing={1}>
@@ -178,12 +169,13 @@ const Localities = () => {
               )
             }}
           />
-
           <IconButton size="small" onClick={handleExport} sx={{ height: 28, width: 36, color: 'green' }}>
             <DescriptionIcon sx={{ fontSize: '1.4rem' }} />
           </IconButton>
-
-          <Button variant="contained" size="small" startIcon={<AddIcon sx={{ fontSize: '1rem' }} />} sx={{ bgcolor: '#122E3E', textTransform: 'none', fontSize: '0.75rem', height: 28, px: 1.5 }} onClick={() => { setFormData({ name: '', description: '', area: '' }); setEditIndex(null); setOpen(true); }}>
+          <Button variant="contained" size="small"
+            onClick={() => { setFormData({ name: '', description: '', area: '' }); setEditIndex(null); setOpen(true); }}
+            sx={{ bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', height: 28, px: 1.5, textTransform: 'none' }}
+            startIcon={<AddIcon sx={{ fontSize: '1rem' }} />}>
             Create
           </Button>
         </Stack>
@@ -196,26 +188,14 @@ const Localities = () => {
               <TableRow>
                 <TableCell padding="checkbox">
                   <Checkbox
-                    checked={paginatedData.every((_, i) =>
-                      selectedRows.includes((page - 1) * rowsPerPage + i)
-                    )}
-                    indeterminate={
-                      selectedRows.some((i) =>
-                        paginatedData.some((_, idx) => i === (page - 1) * rowsPerPage + idx)
-                      ) && !paginatedData.every((_, i) =>
-                        selectedRows.includes((page - 1) * rowsPerPage + i)
-                      )
-                    }
+                    checked={paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))}
+                    indeterminate={selectedRows.some((i) => paginatedData.some((_, idx) => i === (page - 1) * rowsPerPage + idx)) && !paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))}
                     onChange={(e) => handleSelectAll(e.target.checked)}
                     sx={{ color: '#fff', padding: 0 }}
                   />
                 </TableCell>
                 {['name', 'description', 'area'].map((col) => (
-                  <TableCell
-                    key={col}
-                    onClick={() => handleSort(col)}
-                    sx={{ cursor: 'pointer', color: '#fff', fontSize: '0.8rem' }}
-                  >
+                  <TableCell key={col} onClick={() => handleSort(col)} sx={{ cursor: 'pointer', color: '#fff', fontSize: '0.8rem' }}>
                     {col.charAt(0).toUpperCase() + col.slice(1)} {renderSortIcon(col)}
                   </TableCell>
                 ))}
@@ -232,10 +212,7 @@ const Localities = () => {
                   return (
                     <TableRow key={idx} selected={selectedRows.includes(idx)} hover>
                       <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={selectedRows.includes(idx)}
-                          onChange={() => handleSelectRow(idx)}
-                        />
+                        <Checkbox checked={selectedRows.includes(idx)} onChange={() => handleSelectRow(idx)} />
                       </TableCell>
                       <TableCell sx={{ fontSize: '0.75rem' }}>{row.name}</TableCell>
                       <TableCell sx={{ fontSize: '0.75rem' }}>{row.description}</TableCell>
@@ -249,16 +226,10 @@ const Localities = () => {
         </TableContainer>
 
         <Box mt={2} display="flex" justifyContent="flex-end">
-          <Pagination
-            count={Math.ceil(sortedRecords.length / rowsPerPage)}
-            page={page}
-            onChange={(p) => setPage(p)}
-            size="small"
-          />
+          <Pagination count={Math.ceil(sorted.length / rowsPerPage)} page={page} onChange={(p) => setPage(p)} size="small" />
         </Box>
       </Paper>
 
-      {/* Create/Modify Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
         <DialogTitle sx={{ fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#122E3E' }}>
           {editIndex !== null ? 'Modify Locality' : 'Create Locality'}
@@ -266,62 +237,40 @@ const Localities = () => {
             <CloseIcon sx={{ fontSize: '1.1rem', color: '#122E3E' }} />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ px: 3 }}>
-          <TextField
-            label="Locality Name"
-            fullWidth margin="dense"
-            size="small"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-          <TextField
-            label="Description"
-            fullWidth margin="dense"
-            size="small"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <TextField
-            label="Area"
-            fullWidth margin="dense"
-            size="small"
-            value={formData.area}
-            onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-          />
+        <DialogContent dividers sx={{ px: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {['name', 'description', 'area'].map(field => (
+            <TextField
+              key={field}
+              label={field.charAt(0).toUpperCase() + field.slice(1)}
+              fullWidth
+              size="small"
+              value={formData[field]}
+              onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+              sx={{
+                fontSize: '0.75rem',
+                '& .MuiInputBase-input': { fontSize: '0.75rem' },
+                '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+              }}
+            />
+          ))}
         </DialogContent>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <Button
-            variant="contained"
-            size="small"
-            onClick={handleCreateOrUpdate}
-            sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}
-          >
-            Save
-          </Button>
+          <Button variant="contained" size="small" onClick={handleCreateOrUpdate} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff', px: 2 }}>Save</Button>
         </Box>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle sx={{ fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#122E3E' }}>
-          Confirm Deletion
+          Confirm Delete
           <IconButton size="small" onClick={() => setDeleteConfirmOpen(false)}>
-            <CloseIcon sx={{ fontSize: '1.1rem', color: '#122E3E' }} />
+            <CloseIcon sx={{ fontSize: '1.1rem' }} />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
-          Are you sure you want to delete {selectedRows.length} record(s)?
+        <DialogContent dividers sx={{ fontSize: '0.875rem' }}>
+          Are you sure you want to delete selected locality?
         </DialogContent>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <Button
-  variant="contained"
-  size="small"
-  onClick={confirmDelete}
-  sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}
->
-  Delete
-</Button>
-
+          <Button variant="contained" size="small" onClick={confirmDelete} sx={{ fontSize: '0.75rem', height: 28, bgcolor: '#122E3E', color: '#fff' }}>Delete</Button>
         </Box>
       </Dialog>
     </Box>

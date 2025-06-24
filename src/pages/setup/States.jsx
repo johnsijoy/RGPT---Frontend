@@ -252,7 +252,7 @@ const exportToExcel = () => {
               {paginated.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} align="center" sx={{ fontSize: '0.75rem', color: '#666' }}>
-                    No states found.
+                    No record found.
                   </TableCell>
                 </TableRow>
               )}

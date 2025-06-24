@@ -239,7 +239,7 @@ const Cities = () => {
               {paginated.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={4} align="center" sx={{ fontSize: '0.75rem', color: '#666' }}>
-                    No cities found.
+                    No record found.
                   </TableCell>
                 </TableRow>
               )}
