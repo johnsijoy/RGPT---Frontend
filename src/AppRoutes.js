@@ -45,13 +45,15 @@ import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
 import WebsiteStates from './pages/setup/WebsiteStates';
 import WebsiteCities from './pages/setup/WebsiteCities';
-import Areas from './pages/setup/areas'; 
-import Localities from './pages/setup/localities'; 
+import Areas from './pages/setup/areas';
+import Localities from './pages/setup/localities';
 
-//Admin
+// Admin
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
-
+import TaskScheduler from './pages/admin/TaskScheduler';
+import SetupKeyValues from './pages/admin/SetupKeyValues';
+import EmployeeLogs from './pages/admin/EmployeeLogs';
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -64,6 +66,8 @@ const PublicRoute = () => {
 };
 
 const AppRoutes = () => {
+  const { currentUser } = useAuth();
+
   return (
     <Routes>
       {/* Public Routes */}
@@ -119,7 +123,7 @@ const AppRoutes = () => {
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
             <Route path="website-states" element={<WebsiteStates />} />
             <Route path="website-cities" element={<WebsiteCities />} />
-            <Route path="slab-rate" element={<SlabRate />} /> 
+            <Route path="slab-rate" element={<SlabRate />} />
             <Route path="document-centre" element={<DocumentCentre />} />
             <Route path="organisation" element={<Organisation />} />
             <Route path="website-panel" element={<WebsitePanel />} />
@@ -129,27 +133,26 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-            </Route>
+          </Route>
 
-
-            {/* Admin */}
-            <Route path="/admin/list-of-values" element={<ListOfValues />} />
-
-       
+          {/* Admin */}
+          <Route path="admin">
+            <Route path="list-of-values" element={<ListOfValues />} />
+            <Route path="task-schedule" element={<TaskScheduler />} />
+            <Route path="setup-key-values" element={<SetupKeyValues />} />
+            <Route path="employee-logs" element={<EmployeeLogs />} />
+            <Route path="usermanagement" element={<UserManagement />} />
+          </Route>
         </Route>
       </Route>
 
       {/* Catch-all route */}
       <Route
         path="*"
-        element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
+        element={<Navigate to={currentUser ? '/' : '/login'} />}
       />
-      <Route path="/admin/usermanagement" element={<UserManagement />} />
-
-
-     
-      
     </Routes>
-  );};
+  );
+};
 
 export default AppRoutes;

@@ -8,10 +8,20 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import TableSortLabel from '@mui/material/TableSortLabel';
+import TableViewIcon from '@mui/icons-material/TableView';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import * as XLSX from 'xlsx';
 import listOfValues from '../../mock/listofvalues';
 import Pagination from '../../components/common/Pagination';
 import Breadcrumbs from '../../components/common/Breadcrumbs';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import Radio from '@mui/material/Radio';
+import FormControlLabel from '@mui/material/FormControlLabel';
+
+
+
 
 
 const smallerInputSx = {
@@ -35,7 +45,11 @@ const smallerInputSx = {
 const ListOfValues = () => {
   const [data, setData] = useState(listOfValues);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
- 
+  const [columnDialogOpen, setColumnDialogOpen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState(['Type', 'Value', 'Display Value', 'Is Default?', 'Parent List Of Value ', 'Sequence', 'Depth']);
+  const [hiddenColumns, setHiddenColumns] = useState([]);
+  const [selectedVisibleIndex, setSelectedVisibleIndex] = useState(null);
+  const [selectedHiddenIndex, setSelectedHiddenIndex] = useState(null);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
   const [checkedIds, setCheckedIds] = useState([]);
@@ -46,6 +60,11 @@ const ListOfValues = () => {
   const [formData, setFormData] = useState({
     type: '', value: '', displayValue: '', isDefault: '', depth: '', parent: '', sequence: ''
   });
+  const [openImportDialog, setOpenImportDialog] = useState(false);
+  const [importType, setImportType] = useState('comma');
+  const [importAction, setImportAction] = useState('create');
+  const [fieldDelimiter, setFieldDelimiter] = useState('');
+
 
   const rowsPerPage = 25;
 
@@ -100,29 +119,95 @@ const ListOfValues = () => {
     setCheckedIds([]);
   };
 
+  // Functionality
+  const moveToVisible = () => {
+  if (selectedHiddenIndex !== null) {
+    const col = hiddenColumns[selectedHiddenIndex];
+    setVisibleColumns([...visibleColumns, col]);
+    setHiddenColumns(hiddenColumns.filter((_, i) => i !== selectedHiddenIndex));
+    setSelectedHiddenIndex(null);
+  }
+};
+
+const moveToHidden = () => {
+  if (selectedVisibleIndex !== null) {
+    const col = visibleColumns[selectedVisibleIndex];
+    setHiddenColumns([...hiddenColumns, col]);
+    setVisibleColumns(visibleColumns.filter((_, i) => i !== selectedVisibleIndex));
+    setSelectedVisibleIndex(null);
+  }
+};
+
+// const handleExport = () => {
+//   const dataStr = JSON.stringify({ visibleColumns, hiddenColumns }, null, 2);
+//   const blob = new Blob([dataStr], { type: 'application/json' });
+//   const url = URL.createObjectURL(blob);
+//   const link = document.createElement('a');
+//   link.href = url;
+//   link.download = 'column-preferences.json';
+//   link.click();
+// };
+
+// const moveAllToVisible = () => {
+//   setVisibleColumns((prev) => [...prev, ...hiddenColumns]);
+//   setHiddenColumns([]);
+//   setSelectedHiddenIndex(null);
+// };
+
+// const moveAllToHidden = () => {
+//   setHiddenColumns((prev) => [...prev, ...visibleColumns]);
+//   setVisibleColumns([]);
+//   setSelectedVisibleIndex(null);
+// };
+
+
+const handleReset = () => {
+  setVisibleColumns(['Type', 'Value', 'Display Value', 'Is Default?', 'Depth']);
+  setHiddenColumns([]);
+};
+
+const handleSaveColumns = () => {
+  console.log('Visible Columns:', visibleColumns);
+  setColumnDialogOpen(false);
+};
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    console.log('Uploaded file:', file.name);
+    // You can add logic to read or process the file here.
+  }
+};
+
+const handleImportSubmit = () => {
+  console.log('Import submitted');
+  // Add your submission logic here
+  setOpenImportDialog(false); 
+};
+
+
+
  
 
 
   return (
     <Box sx={{ p: 3, backgroundColor: '#fff', borderRadius: 2 }}>
       <Breadcrumbs current="List Of Values" />
+
+      {/*  Heading */} 
       <Typography variant="h6" sx={{ mb: 2 }}>List Of Values</Typography>
-
-     <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', mb: 2, gap: 1 }}>
-
-
-
-  {/*  Modify | Delete | Batch Update */}
-  <Box sx={{ display: 'flex', gap: 1 }}>
-   <Button
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', mb: 2, gap: 1 }}>
+        
+        
+        {/*  Modify | Delete | Batch Update */}
+       <Box sx={{ display: 'flex', gap: 1 }}>
+       <Button
            variant="contained"
            size="small"
            onClick={() => handleDialogOpen('edit')}
            disabled={checkedIds.length !== 1}
            sx={{bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem',padding: '3px 9px', textTransform: 'none',
-             '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' }
-           }}
-         >
+             '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' } }}>
            Modify
          </Button>
          <Button
@@ -135,10 +220,9 @@ const ListOfValues = () => {
              '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' }
            }}
          >
-           Delete
+            Delete
          </Button>
-
-    <Button
+         <Button
                variant="contained"
                size="small"
                sx={{ bgcolor: '#122E3E', fontSize: '0.75rem',padding: '3px 9px', textTransform: 'none' }}
@@ -146,13 +230,10 @@ const ListOfValues = () => {
              >
                Batch Update
              </Button>
-  </Box>
+          </Box>
 
-  {/* Search | Select | Download | Create */}
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-
-
-
+            {/* Search | Select | Download | Create */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
     {/* Search */}
     <TextField
       variant="outlined"
@@ -191,7 +272,23 @@ const ListOfValues = () => {
     </FormControl>
 
    
-    {/* Download Excel */}
+    {/* Import icon */}
+     <IconButton size="small" title="Import" onClick={() => setOpenImportDialog(true)} sx={{ color: 'grey' }}>
+     <UploadFileIcon fontSize="medium" />
+     </IconButton>
+ 
+  {/* Table view icon */}
+<IconButton
+  size="small"
+  title="Column Preferences"
+  sx={{ color: 'grey' }}
+  onClick={() => setColumnDialogOpen(true)}
+>
+  <TableViewIcon />
+</IconButton>
+
+
+{/* Download Excel */}
 <IconButton
   size="small"
   sx={{ color: 'green' }}
@@ -211,7 +308,7 @@ const ListOfValues = () => {
     XLSX.writeFile(wb, 'ListOfValues.xlsx');
   }}
 >
-  <DescriptionIcon fontSize="medium" />
+    <DescriptionIcon fontSize="medium" />
 </IconButton>
 
 
@@ -406,6 +503,177 @@ const ListOfValues = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+
+
+     {/* Dialog for Column Preference (Table view) */}
+     <Dialog open={columnDialogOpen} onClose={() => setColumnDialogOpen(false)} fullWidth maxWidth="sm">
+  <DialogTitle>
+    <Box display="flex" justifyContent="space-between" alignItems="center">
+      <Typography variant="h6" fontSize="1rem">Column Preferences</Typography>
+      <IconButton size="small" onClick={() => setColumnDialogOpen(false)}>
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  </DialogTitle>
+
+  <DialogContent>
+    <Typography variant="body2" sx={{ mb: 2 }}>
+      Configure which columns to show/hide using the arrows. You can also reset column settings.
+    </Typography>
+
+    <Box sx={{ display: 'flex', gap: 2 }}>
+      {/* Hidden Columns */}
+      <Box flex={1}>
+        <Typography variant="subtitle2" fontSize="0.875rem">Hidden Columns</Typography>
+        <List sx={{ border: '1px solid #ccc', height: 180, overflow: 'auto' }}>
+          {hiddenColumns.map((col, index) => (
+            <ListItem
+              key={index}
+              button
+              selected={index === selectedHiddenIndex}
+              onClick={() => setSelectedHiddenIndex(index)}
+            >
+              <ListItemText primary={col} />
+            </ListItem>
+          ))}
+        </List>
+      </Box>
+
+      {/* Arrow Buttons */}
+      <Box display="flex" flexDirection="column" justifyContent="center" gap={1}>
+        <Button size="small" variant="outlined" onClick={moveToVisible}>{'>>'}</Button>
+        <Button size="small" variant="outlined" onClick={moveToHidden}>{'<<'}</Button>
+      </Box>
+
+      {/* Visible Columns */}
+      <Box flex={1}>
+        <Typography variant="subtitle2" fontSize="0.875rem">Visible Columns</Typography>
+        <List sx={{ border: '1px solid #ccc', height: 180, overflow: 'auto' }}>
+          {visibleColumns.map((col, index) => (
+            <ListItem
+              key={index}
+              button
+              selected={index === selectedVisibleIndex}
+              onClick={() => setSelectedVisibleIndex(index)}
+            >
+              <ListItemText primary={col} />
+            </ListItem>
+          ))}
+        </List>
+      </Box>
+    </Box>
+  </DialogContent>
+
+  {/* Dialog Footer Buttons */}
+  <DialogActions sx={{ justifyContent: 'flex-end', pr: 3, pb: 2 }}>
+    <Button size="small" variant="outlined" sx={{ bgcolor: '#122E3E', color: '#fff', textTransform: 'none' }} onClick={handleReset}>Reset</Button>
+   
+    <Button
+      size="small"
+      variant="contained"
+      sx={{ bgcolor: '#122E3E', color: '#fff', textTransform: 'none' }}
+      onClick={handleSaveColumns}
+    >
+      Save
+    </Button>
+  </DialogActions>
+</Dialog>
+
+{/* Dialog for Import Values */}
+<Dialog open={openImportDialog} onClose={() => setOpenImportDialog(false)} fullWidth maxWidth="sm">
+  <DialogTitle>
+    <Box display="flex" justifyContent="space-between" alignItems="center">
+      <Typography fontSize="1rem" fontWeight={600}>Import Values</Typography>
+      <IconButton size="small" onClick={() => setOpenImportDialog(false)}>
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  </DialogTitle>
+
+  <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <FormControl>
+      <Typography fontSize="0.875rem" fontWeight={500}>What is the Data Source? *</Typography>
+      <Box display="flex" gap={2} mt={1}>
+        <FormControlLabel
+          control={
+            <Radio
+              checked={importType === 'comma'}
+              onChange={() => setImportType('comma')}
+            />
+          }
+          label="Comma delimited file"
+        />
+        <FormControlLabel
+          control={
+            <Radio
+              checked={importType === 'custom'}
+              onChange={() => setImportType('custom')}
+            />
+          }
+          label="Custom delimited file"
+        />
+      </Box>
+    </FormControl>
+
+    {importType === 'custom' && (
+      <TextField
+        label="Fields Qualified By"
+        fullWidth
+        size="small"
+        placeholder='e.g. "|"'
+        value={fieldDelimiter}
+        onChange={(e) => setFieldDelimiter(e.target.value)}
+      />
+    )}
+
+    <FormControl>
+      <Typography fontSize="0.875rem" fontWeight={500}>Import Action</Typography>
+      <Box display="flex" gap={2} mt={1}>
+        <FormControlLabel
+          control={
+            <Radio
+              checked={importAction === 'create'}
+              onChange={() => setImportAction('create')}
+            />
+          }
+          label="Create Records"
+        />
+        <FormControlLabel
+          control={
+            <Radio
+              checked={importAction === 'createUpdate'}
+              onChange={() => setImportAction('createUpdate')}
+            />
+          }
+          label="Create And Update Records"
+        />
+      </Box>
+    </FormControl>
+
+   
+  </DialogContent>
+
+  <DialogActions sx={{ px: 3, pb: 2 }}>
+    <Button
+      variant="contained"
+      component="label"
+      sx={{ bgcolor: '#122E3E', color: '#fff', textTransform: 'none', padding:'3px 9px', width: 'fit-content' }}
+    >
+      Upload File
+      <input type="file" hidden onChange={handleFileUpload} />
+    </Button>
+    <Button
+      size="small"
+      variant="contained"
+      sx={{ bgcolor: '#122E3E', color: '#fff', textTransform: 'none' }}
+      onClick={handleImportSubmit}
+    >
+      Import
+    </Button>
+  </DialogActions>
+</Dialog>
+
 
 
       {/* Delete Confirmation Dialog */}
