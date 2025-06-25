@@ -108,7 +108,7 @@ const WebsiteCities = () => {
 
 
     {/* Modify / Delete */}
-     <Box sx={{ display: 'flex', gap: 1 }}>
+     <Box sx={{ display: 'flex', gap: 1, padding: '4px 10px' }}>
       <Button
         variant="contained"
         size="small"
@@ -179,8 +179,18 @@ const WebsiteCities = () => {
         sx={{ color: 'green' }}
         title="Export to Excel"
         onClick={() => {
-           const headers = [["Website City Name", "Master City", "State", "Country"]];
-           const rows = data.map(city => [city.name, city.masterCity, city.state, city.country, ]);
+           const headers = [["Website City Name", "Master City", "State", "Country", "Created", "Created By", "Last Updated By", "Last Updated"]];
+          const rows = data.map(city => [
+  city.name,
+  city.masterCity,
+  city.state,
+  city.country,
+  city.created,
+  city.createdBy,
+  city.lastUpdatedBy, 
+  city.lastUpdated
+]);
+
            const worksheet = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
            const workbook = XLSX.utils.book_new();
            XLSX.utils.book_append_sheet(workbook, worksheet, 'Cities');
