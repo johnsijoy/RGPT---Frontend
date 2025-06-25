@@ -123,9 +123,9 @@ const WebsiteStates = () => {
               onClick={() => handleDialogOpen('edit')}
               disabled={checkedStateIds.length !== 1}
               sx={{
-                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '4px 10px',
+                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '2px 9px',
                 textTransform: 'none',
-                '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' }
+                '&.Mui-disabled': { bgcolor: '#e0e0e0',padding: '2px 9px', color: '#888' }
               }}
             >
               Modify
@@ -137,9 +137,9 @@ const WebsiteStates = () => {
               onClick={() => setOpenDeleteDialog(true)}
               disabled={checkedStateIds.length === 0}
               sx={{
-                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '4px 10px',
+                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '2px 9px',
                 textTransform: 'none',
-                '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' }
+                '&.Mui-disabled': { bgcolor: '#e0e0e0', padding: '2px 9px',color: '#888' }
               }}
             >
               Delete
@@ -330,7 +330,7 @@ const WebsiteStates = () => {
             sx={{fontSize: '0.75rem','& .MuiInputBase-input': { fontSize: '0.75rem' },'& .MuiInputLabel-root': { fontSize: '0.75rem' }}} />
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" sx={{ bgcolor: '#122E3E', color: '#fff' }} onClick={handleDialogSubmit}>
+          <Button variant="contained" sx={{ bgcolor: '#122E3E', fontSize: '0.75rem', padding: '3px 9px', color: '#fff' }} onClick={handleDialogSubmit}>
             SAVE
           </Button>
         </DialogActions>

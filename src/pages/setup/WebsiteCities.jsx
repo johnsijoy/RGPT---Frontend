@@ -314,7 +314,7 @@ const WebsiteCities = () => {
                                                 sx={{fontSize: '0.75rem','& .MuiInputBase-input': { fontSize: '0.75rem' },'& .MuiInputLabel-root': { fontSize: '0.75rem' } }}/>
                                                 </DialogContent>
                                                 <DialogActions>
-                                                  <Button variant="contained" sx={{ bgcolor: '#122E3E', color: '#fff' }} onClick={handleDialogSubmit}>SAVE</Button>
+                                                  <Button variant="contained" sx={{ bgcolor: '#122E3E',fontSize: '0.75rem', padding: '3px 9px', color: '#fff' }} onClick={handleDialogSubmit}>SAVE</Button>
                                                 </DialogActions>
                                                 </Dialog>
                                                 
