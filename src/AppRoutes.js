@@ -48,9 +48,10 @@ import WebsiteCities from './pages/setup/WebsiteCities';
 import Areas from './pages/setup/areas'; 
 import Localities from './pages/setup/localities'; 
 
-//Admin
+// Admin
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
+import TaskScheduler from './pages/admin/TaskScheduler';
 
 
 const PrivateRoute = () => {
@@ -129,13 +130,13 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-            </Route>
+          </Route>
 
-
-            {/* Admin */}
-            <Route path="/admin/list-of-values" element={<ListOfValues />} />
-
-       
+          {/* Admin */}
+          <Route path="/admin/list-of-values" element={<ListOfValues />} />
+          <Route path="/admin/task-schedule" element={<TaskScheduler />} />
+          
+          <Route path="/admin/usermanagement" element={<UserManagement />} />
         </Route>
       </Route>
 
@@ -144,12 +145,8 @@ const AppRoutes = () => {
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
-      <Route path="/admin/usermanagement" element={<UserManagement />} />
-
-
-     
-      
     </Routes>
-  );};
+  );
+};
 
 export default AppRoutes;
