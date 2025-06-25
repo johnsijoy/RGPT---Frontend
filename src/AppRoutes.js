@@ -46,13 +46,21 @@ import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
 import WebsiteStates from './pages/setup/WebsiteStates';
 import WebsiteCities from './pages/setup/WebsiteCities';
+
 import Areas from './pages/setup/areas';
 import Localities from './pages/setup/localities';
 
-// Admin
+
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
 import ListViewColumn from './pages/admin/ListViewColumn';
+
+import Areas from './pages/setup/areas'; 
+import Localities from './pages/setup/localities'; 
+// Admin Pages
+import UserManagement from './pages/admin/UserManagement';
+import Report from './pages/admin/general/Report';
+
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -75,8 +83,15 @@ const AppRoutes = () => {
       {/* Private Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
+        {/*Dashboard*/}
+        <Route path="/" element={<Dashboard />} />
+        
+<Route path="admin/usermanagement">
+  <Route index element={<UserManagement />} />
+  <Route path="reports" element={<Report />} />
+</Route>
 
+  
           {/* Activities */}
           <Route path="activities">
             <Route index element={<ActivitiesList />} />
@@ -130,9 +145,10 @@ const AppRoutes = () => {
             <Route path="localities" element={<Localities />} />
           </Route>
 
+
           {/* Admin */}
           <Route path="admin/list-of-values" element={<ListOfValues />} />
-          <Route path="admin/list-view-column" element={<ListViewColumn />} />
+
         </Route>
       </Route>
 
@@ -141,7 +157,9 @@ const AppRoutes = () => {
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
+
       <Route path="/admin/usermanagement" element={<UserManagement />} />
+
     </Routes>
   );
 };

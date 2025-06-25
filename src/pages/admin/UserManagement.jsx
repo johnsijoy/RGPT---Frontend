@@ -52,11 +52,17 @@ const groupedSections = [
 const UserManagement = () => {
   const navigate = useNavigate();
 
-  const handleClick = (title) => {
-    const path = `/admin/${title.toLowerCase().replace(/\s+/g, '-')}`;
-
-    navigate(path);
+const handleClick = (title) => {
+  const routeMap = {
+    'Reports': '/admin/usermanagement/reports',
+    // Add more as needed
   };
+
+  const defaultPath = `/admin/${title.toLowerCase().replace(/\s+/g, '-')}`;
+  const path = routeMap[title] || defaultPath;
+  navigate(path);
+};
+
 
   return (
     <Layout>
