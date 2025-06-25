@@ -401,7 +401,7 @@ const ListOfValues = () => {
 </DialogContent>
 
         <DialogActions>
-          <Button variant="contained" sx={{ bgcolor: '#122E3E', color: '#fff' }} onClick={handleDialogSubmit}>
+          <Button variant="contained" sx={{ bgcolor: '#122E3E',fontSize: '0.75rem', padding: '3px 9px', color: '#fff' }} onClick={handleDialogSubmit}>
             Save
           </Button>
         </DialogActions>
