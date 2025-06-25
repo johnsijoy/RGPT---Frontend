@@ -45,13 +45,13 @@ import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
 import WebsiteStates from './pages/setup/WebsiteStates';
 import WebsiteCities from './pages/setup/WebsiteCities';
-import Areas from './pages/setup/areas'; 
-import Localities from './pages/setup/localities'; 
+import Areas from './pages/setup/areas';
+import Localities from './pages/setup/localities';
 
-//Admin
+// Admin
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
-
+import EmployeeLogs from './pages/admin/EmployeeLogs';
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -119,7 +119,7 @@ const AppRoutes = () => {
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
             <Route path="website-states" element={<WebsiteStates />} />
             <Route path="website-cities" element={<WebsiteCities />} />
-            <Route path="slab-rate" element={<SlabRate />} /> 
+            <Route path="slab-rate" element={<SlabRate />} />
             <Route path="document-centre" element={<DocumentCentre />} />
             <Route path="organisation" element={<Organisation />} />
             <Route path="website-panel" element={<WebsitePanel />} />
@@ -129,13 +129,11 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-            </Route>
+          </Route>
 
-
-            {/* Admin */}
-            <Route path="/admin/list-of-values" element={<ListOfValues />} />
-
-       
+          {/* Admin */}
+          <Route path="admin/list-of-values" element={<ListOfValues />} />
+          <Route path="admin/employee-logs" element={<EmployeeLogs />} />
         </Route>
       </Route>
 
@@ -145,11 +143,8 @@ const AppRoutes = () => {
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
       <Route path="/admin/usermanagement" element={<UserManagement />} />
-
-
-     
-      
     </Routes>
-  );};
+  );
+};
 
 export default AppRoutes;
