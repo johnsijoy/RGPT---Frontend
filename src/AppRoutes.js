@@ -51,6 +51,7 @@ import Localities from './pages/setup/localities';
 // Admin
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
+import TaskScheduler from './pages/admin/TaskScheduler';
 import SetupKeyValues from './pages/admin/SetupKeyValues';
 import EmployeeLogs from './pages/admin/EmployeeLogs';
 
@@ -130,14 +131,15 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-            </Route>
+          </Route>
 
-
-            {/* Admin */}
-            <Route path="/admin/list-of-values" element={<ListOfValues />} />
-            <Route path="/admin/setup-key-values" element={<SetupKeyValues />} />
-            <Route path="admin/employee-logs" element={<EmployeeLogs />} />
-
+          {/* Admin */}
+          <Route path="/admin/list-of-values" element={<ListOfValues />} />
+          <Route path="/admin/task-schedule" element={<TaskScheduler />} />
+          <Route path="/admin/setup-key-values" element={<SetupKeyValues />} />
+          <Route path="admin/employee-logs" element={<EmployeeLogs />} />
+          <Route path="/admin/usermanagement" element={<UserManagement />} />
+         </Route>
         </Route>
       </Route>
 
@@ -146,6 +148,7 @@ const AppRoutes = () => {
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
+
       <Route path="/admin/usermanagement" element={<UserManagement />} />
     </Routes>
   );
