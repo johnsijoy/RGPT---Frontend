@@ -51,9 +51,12 @@ import Localities from './pages/setup/localities';
 // Admin
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
+
 import TaskScheduler from './pages/admin/TaskScheduler';
 import SetupKeyValues from './pages/admin/SetupKeyValues';
 import EmployeeLogs from './pages/admin/EmployeeLogs';
+import EntityIdRepository from './pages/admin/EntityIdRepository';
+
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -135,15 +138,17 @@ const AppRoutes = () => {
             <Route path="localities" element={<Localities />} />
           </Route>
 
-          {/* Admin */}
           <Route path="admin">
-            <Route path="list-of-values" element={<ListOfValues />} />
+            <Route path="/admin/list-of-values" element={<ListOfValues />} />
+              <Route path="/admin/entity-id-repository" element={<EntityIdRepository />} />
             <Route path="task-schedule" element={<TaskScheduler />} />
             <Route path="setup-key-values" element={<SetupKeyValues />} />
             <Route path="employee-logs" element={<EmployeeLogs />} />
-            <Route path="usermanagement" element={<UserManagement />} />
           </Route>
         </Route>
+      </Route>
+      <Route path="admin">
+        <Route path="usermanagement" element={<UserManagement />} />
       </Route>
 
       {/* Catch-all route */}
