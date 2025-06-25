@@ -45,16 +45,22 @@ const smallerInputSx = {
     minHeight: '28px',
     paddingTop: '4px',
     paddingBottom: '4px',
-    '& .MuiOutlinedInput-input': {
-      padding: '4px 8px',
-    },
+    display: 'flex',
+    alignItems: 'center', // Vertically centers the text
+  },
+  '& .MuiOutlinedInput-input': {
+    padding: '4px 8px',
+    fontSize: '0.75rem',
   },
   '& .MuiInputLabel-root': {
     fontSize: '0.75rem',
-    top: -8,
-    left: '0px',
+    top: '50%',
+    left: 8,
+    transform: 'translateY(-50%)',
+    transition: 'all 0.2s ease',
     '&.MuiInputLabel-shrink': {
       top: 0,
+      left: 0,
       transform: 'translate(14px, -7px) scale(0.75) !important',
       transformOrigin: 'top left',
     },
@@ -610,7 +616,8 @@ export default function WebsiteAreas() {
               backgroundColor: '#162F40',
               fontSize: '0.75rem',
               '&:hover': { backgroundColor: '#121f2a' },
-              minWidth: 80,
+              minWidth: 60,
+                height: 25,
             }}
           >
             Delete
