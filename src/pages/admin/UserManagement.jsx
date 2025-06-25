@@ -54,6 +54,7 @@ const UserManagement = () => {
 
   const handleClick = (title) => {
     const path = `/admin/${title.toLowerCase().replace(/\s+/g, '-')}`;
+
     navigate(path);
   };
 
