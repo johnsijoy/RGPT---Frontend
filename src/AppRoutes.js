@@ -51,6 +51,7 @@ import Localities from './pages/setup/localities';
 // Admin
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
+import SetupKeyValues from './pages/admin/SetupKeyValues';
 import EmployeeLogs from './pages/admin/EmployeeLogs';
 
 const PrivateRoute = () => {
@@ -129,11 +130,14 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-          </Route>
+            </Route>
 
-          {/* Admin */}
-          <Route path="admin/list-of-values" element={<ListOfValues />} />
-          <Route path="admin/employee-logs" element={<EmployeeLogs />} />
+
+            {/* Admin */}
+            <Route path="/admin/list-of-values" element={<ListOfValues />} />
+            <Route path="/admin/setup-key-values" element={<SetupKeyValues />} />
+            <Route path="admin/employee-logs" element={<EmployeeLogs />} />
+
         </Route>
       </Route>
 
