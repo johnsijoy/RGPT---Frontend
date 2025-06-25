@@ -66,6 +66,8 @@ const PublicRoute = () => {
 };
 
 const AppRoutes = () => {
+  const { currentUser } = useAuth();
+
   return (
     <Routes>
       {/* Public Routes */}
@@ -134,22 +136,21 @@ const AppRoutes = () => {
           </Route>
 
           {/* Admin */}
-          <Route path="/admin/list-of-values" element={<ListOfValues />} />
-          <Route path="/admin/task-schedule" element={<TaskScheduler />} />
-          <Route path="/admin/setup-key-values" element={<SetupKeyValues />} />
-          <Route path="admin/employee-logs" element={<EmployeeLogs />} />
-          <Route path="/admin/usermanagement" element={<UserManagement />} />
-         </Route>
+          <Route path="admin">
+            <Route path="list-of-values" element={<ListOfValues />} />
+            <Route path="task-schedule" element={<TaskScheduler />} />
+            <Route path="setup-key-values" element={<SetupKeyValues />} />
+            <Route path="employee-logs" element={<EmployeeLogs />} />
+            <Route path="usermanagement" element={<UserManagement />} />
+          </Route>
         </Route>
       </Route>
 
       {/* Catch-all route */}
       <Route
         path="*"
-        element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
+        element={<Navigate to={currentUser ? '/' : '/login'} />}
       />
-
-      <Route path="/admin/usermanagement" element={<UserManagement />} />
     </Routes>
   );
 };

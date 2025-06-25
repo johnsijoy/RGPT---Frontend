@@ -138,27 +138,27 @@ const moveToHidden = () => {
   }
 };
 
-const handleExport = () => {
-  const dataStr = JSON.stringify({ visibleColumns, hiddenColumns }, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'column-preferences.json';
-  link.click();
-};
+// const handleExport = () => {
+//   const dataStr = JSON.stringify({ visibleColumns, hiddenColumns }, null, 2);
+//   const blob = new Blob([dataStr], { type: 'application/json' });
+//   const url = URL.createObjectURL(blob);
+//   const link = document.createElement('a');
+//   link.href = url;
+//   link.download = 'column-preferences.json';
+//   link.click();
+// };
 
-const moveAllToVisible = () => {
-  setVisibleColumns((prev) => [...prev, ...hiddenColumns]);
-  setHiddenColumns([]);
-  setSelectedHiddenIndex(null);
-};
+// const moveAllToVisible = () => {
+//   setVisibleColumns((prev) => [...prev, ...hiddenColumns]);
+//   setHiddenColumns([]);
+//   setSelectedHiddenIndex(null);
+// };
 
-const moveAllToHidden = () => {
-  setHiddenColumns((prev) => [...prev, ...visibleColumns]);
-  setVisibleColumns([]);
-  setSelectedVisibleIndex(null);
-};
+// const moveAllToHidden = () => {
+//   setHiddenColumns((prev) => [...prev, ...visibleColumns]);
+//   setVisibleColumns([]);
+//   setSelectedVisibleIndex(null);
+// };
 
 
 const handleReset = () => {
