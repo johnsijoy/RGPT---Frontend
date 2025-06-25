@@ -528,9 +528,9 @@ export default function Slabrate() {
   onClick={() => handleCheckbox(item.id)}
   sx={{
     cursor: 'pointer',
-    backgroundColor: 'inherit !important', // Prevent selection color
+    backgroundColor: 'inherit !important',
     '&:hover': {
-      backgroundColor: 'inherit !important', // Prevent hover color
+      backgroundColor: 'inherit !important', 
     },
   }}
 >

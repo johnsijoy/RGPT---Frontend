@@ -1,3 +1,5 @@
+// File: src/AppRoutes.jsx
+
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
@@ -33,7 +35,6 @@ import ProjectSetupForm from './pages/project-setup/ProjectSetupForm';
 import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
-
 import WebsiteAreasDetails from './pages/setup/WebsiteAreas';
 import SlabRate from './pages/setup/Slabrate';
 import DocumentCentre from './pages/setup/DocumentCentre';
@@ -45,13 +46,13 @@ import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
 import WebsiteStates from './pages/setup/WebsiteStates';
 import WebsiteCities from './pages/setup/WebsiteCities';
-import Areas from './pages/setup/areas'; 
-import Localities from './pages/setup/localities'; 
+import Areas from './pages/setup/areas';
+import Localities from './pages/setup/localities';
 
-//Admin
+// Admin
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
-
+import ListViewColumn from './pages/admin/ListViewColumn';
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -114,12 +115,10 @@ const AppRoutes = () => {
             <Route path=":id" element={<SetupDetails />} />
             <Route path="new" element={<SetupForm />} />
             <Route path="edit/:id" element={<SetupForm />} />
-
-            {/* Setup Subsections */}
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
             <Route path="website-states" element={<WebsiteStates />} />
             <Route path="website-cities" element={<WebsiteCities />} />
-            <Route path="slab-rate" element={<SlabRate />} /> 
+            <Route path="slab-rate" element={<SlabRate />} />
             <Route path="document-centre" element={<DocumentCentre />} />
             <Route path="organisation" element={<Organisation />} />
             <Route path="website-panel" element={<WebsitePanel />} />
@@ -129,13 +128,11 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-            </Route>
+          </Route>
 
-
-            {/* Admin */}
-            <Route path="/admin/list-of-values" element={<ListOfValues />} />
-
-       
+          {/* Admin */}
+          <Route path="admin/list-of-values" element={<ListOfValues />} />
+          <Route path="admin/list-view-column" element={<ListViewColumn />} />
         </Route>
       </Route>
 
@@ -145,11 +142,8 @@ const AppRoutes = () => {
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
       <Route path="/admin/usermanagement" element={<UserManagement />} />
-
-
-     
-      
     </Routes>
-  );};
+  );
+};
 
 export default AppRoutes;
