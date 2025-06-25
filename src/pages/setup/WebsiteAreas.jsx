@@ -170,8 +170,8 @@ function WebsiteAreasForm({ initialData = {}, onCancel, onSubmit }) {
                 backgroundColor: '#162F40',
                 '&:hover': { backgroundColor: '#121f2a' },
                 fontSize: '0.75rem',
-                minWidth: 60,
-                height: 25,
+                minWidth: 70,
+                height: 28,
                 padding: '4px 10px',
               }}
             >

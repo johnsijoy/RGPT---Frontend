@@ -141,9 +141,11 @@ const AppRoutes = () => {
             <Route path="task-schedule" element={<TaskScheduler />} />
             <Route path="setup-key-values" element={<SetupKeyValues />} />
             <Route path="employee-logs" element={<EmployeeLogs />} />
-            <Route path="usermanagement" element={<UserManagement />} />
           </Route>
         </Route>
+      </Route>
+      <Route path="admin">
+        <Route path="usermanagement" element={<UserManagement />} />
       </Route>
 
       {/* Catch-all route */}
