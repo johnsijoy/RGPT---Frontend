@@ -51,6 +51,7 @@ import Localities from './pages/setup/localities';
 //Admin
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
+import EntityIdRepository from './pages/admin/EntityIdRepository';
 
 
 const PrivateRoute = () => {
@@ -134,6 +135,7 @@ const AppRoutes = () => {
 
             {/* Admin */}
             <Route path="/admin/list-of-values" element={<ListOfValues />} />
+              <Route path="/admin/entity-id-repository" element={<EntityIdRepository />} />
 
        
         </Route>

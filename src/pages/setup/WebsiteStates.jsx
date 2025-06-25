@@ -116,16 +116,16 @@ const WebsiteStates = () => {
       <Box sx={{ mb: 2 }}>
         <Typography variant="h6" sx={{ mb: 1 }}>Website States</Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, padding: '4px 10px' }}>
             <Button
               variant="contained"
               size="small"
               onClick={() => handleDialogOpen('edit')}
               disabled={checkedStateIds.length !== 1}
               sx={{
-                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '2px 9px',
+                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '4px 10px',
                 textTransform: 'none',
-                '&.Mui-disabled': { bgcolor: '#e0e0e0',padding: '2px 9px', color: '#888' }
+                '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' }
               }}
             >
               Modify
@@ -137,9 +137,9 @@ const WebsiteStates = () => {
               onClick={() => setOpenDeleteDialog(true)}
               disabled={checkedStateIds.length === 0}
               sx={{
-                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '2px 9px',
+                bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem', padding: '4px 10px',
                 textTransform: 'none',
-                '&.Mui-disabled': { bgcolor: '#e0e0e0', padding: '2px 9px',color: '#888' }
+                '&.Mui-disabled': { bgcolor: '#e0e0e0',color: '#888' }
               }}
             >
               Delete
@@ -192,8 +192,8 @@ const WebsiteStates = () => {
               sx={{ color: 'green' }}
               title="Export to Excel"
               onClick={() => {
-                const headers = [["Website State Name", "Country"]];
-                const rows = data.map(state => [state.name, state.country]);
+                const headers = [["Website State Name","Master Sate", "Country", "Created", "Created By", "Last Updated By", "Last Updated"]];
+                const rows = data.map(state => [state.name, state.masterState, state.country, state.created, state.createdBy, state.lastUpdatedBy, state.lastUpdated]);
                 const worksheet = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, 'States');
@@ -238,7 +238,7 @@ const WebsiteStates = () => {
                   }}
                 />
               </TableCell>
-              {["name", "country"].map((key) => (
+              {["name", "masterState", "country"].map((key) => (
                 <TableCell
                   key={key}
                   sx={{
@@ -254,7 +254,7 @@ const WebsiteStates = () => {
                     direction={sortConfig.key === key ? sortConfig.direction : 'asc'}
                     onClick={() => handleSort(key)}
                   >
-                    {{ name: 'Website State Name', country: 'Country' }[key]}
+                    {{ name: 'Website State Name', masterState: 'Master State', country: 'Country' }[key]}
                   </TableSortLabel>
                 </TableCell>
               ))}
@@ -280,6 +280,7 @@ const WebsiteStates = () => {
                       />
                     </TableCell>
                     <TableCell sx={{ fontSize: '0.75rem' }}>{state.name}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem' }}>{state.masterState}</TableCell>
                     <TableCell sx={{ fontSize: '0.75rem' }}>{state.country}</TableCell>
                   </TableRow>
                 );
@@ -322,6 +323,12 @@ const WebsiteStates = () => {
               '& .MuiInputLabel-root': { fontSize: '0.75rem' }
             }}
           />
+          <TextField
+            label="Master State"
+            fullWidth
+            value={formData.country}
+            onChange={(e) => setFormData({ ...formData, masterState: e.target.value })}
+            sx={{fontSize: '0.75rem','& .MuiInputBase-input': { fontSize: '0.75rem' },'& .MuiInputLabel-root': { fontSize: '0.75rem' }}} />
           <TextField
             label="Country"
             fullWidth
