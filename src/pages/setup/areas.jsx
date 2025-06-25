@@ -1,4 +1,3 @@
-// --- Areas.jsx (fully updated styling) ---
 import React, { useState } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer,
@@ -57,7 +56,8 @@ const Areas = () => {
   const handleModify = () => {
     if (selectedRows.length === 1) {
       const idx = selectedRows[0];
-      setFormData(areas[idx]);
+      const selectedArea = areas[idx];
+      setFormData({ ...selectedArea });
       setEditIndex(idx);
       setOpen(true);
     }
@@ -71,16 +71,14 @@ const Areas = () => {
   };
 
   const handleDownload = () => {
-  const headers = [["Area Name", "City", "State", "Country"]];
-  const rows = areas.map(({ name, city, state, country }) => [name, city, state, country]);
+    const headers = [["Area Name", "City", "State", "Country"]];
+    const rows = areas.map(({ name, city, state, country }) => [name, city, state, country]);
+    const worksheet = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Areas');
+    XLSX.writeFile(workbook, 'areas.xlsx');
+  };
 
-  const worksheet = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Areas');
-  XLSX.writeFile(workbook, 'areas.xlsx');
-};
-
-    
   const handleSort = (key) => {
     let direction = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
@@ -116,6 +114,7 @@ const Areas = () => {
   }
 
   const paginatedData = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
   const renderSortIcon = (key) => sortConfig.key === key ? (
     sortConfig.direction === 'asc'
       ? <ArrowUpwardIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} />
@@ -180,14 +179,8 @@ const Areas = () => {
               <TableRow>
                 <TableCell padding="checkbox">
                   <Checkbox
-                    checked={paginatedData.every((_, i) =>
-                      selectedRows.includes((page - 1) * rowsPerPage + i)
-                    )}
-                    indeterminate={selectedRows.some((i) =>
-                      paginatedData.some((_, idx) => i === (page - 1) * rowsPerPage + idx)
-                    ) && !paginatedData.every((_, i) =>
-                      selectedRows.includes((page - 1) * rowsPerPage + i)
-                    )}
+                    checked={paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))}
+                    indeterminate={selectedRows.some((i) => paginatedData.some((_, idx) => i === (page - 1) * rowsPerPage + idx)) && !paginatedData.every((_, i) => selectedRows.includes((page - 1) * rowsPerPage + i))}
                     onChange={(e) => handleSelectAll(e.target.checked)}
                     sx={{ color: '#fff', padding: 0 }}
                   />
@@ -223,26 +216,25 @@ const Areas = () => {
             </TableBody>
           </Table>
         </TableContainer>
-
-        <Box mt={2} display="flex" justifyContent="flex-end">
-          <Pagination
-            count={Math.ceil(filtered.length / rowsPerPage)}
-            page={page}
-            onChange={(p) => setPage(p)}
-            size="small"
-          />
-        </Box>
       </Paper>
 
-      {/* Create/Modify Dialog */}
+      <Box mt={2} display="flex" justifyContent="flex-end">
+        <Pagination
+          count={Math.ceil(filtered.length / rowsPerPage)}
+          page={page}
+          onChange={(p) => setPage(p)}
+          size="small"
+        />
+      </Box>
+
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
-        <DialogTitle sx={{ fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#122E3E' }}>
+        <DialogTitle sx={{ fontSize: '1rem', color: '#122E3E', px: 3, pt: 2, pb: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 'none' }}>
           {editIndex !== null ? 'Modify Area' : 'Create Area'}
           <IconButton size="small" onClick={() => setOpen(false)}>
             <CloseIcon sx={{ fontSize: '1.1rem', color: '#122E3E' }} />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ px: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <DialogContent sx={{ px: 3, pt: 2, pb: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {['name', 'city', 'state', 'country'].map(field => (
             <TextField
               key={field}
@@ -251,6 +243,7 @@ const Areas = () => {
               size="small"
               value={formData[field]}
               onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+              InputLabelProps={{ shrink: true }}
               sx={{
                 fontSize: '0.75rem',
                 '& .MuiInputBase-input': { fontSize: '0.75rem' },
@@ -259,7 +252,7 @@ const Areas = () => {
             />
           ))}
         </DialogContent>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2, pt: 1 }}>
           <Button
             variant="contained"
             size="small"
@@ -271,18 +264,17 @@ const Areas = () => {
         </Box>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
-        <DialogTitle sx={{ fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#122E3E' }}>
+        <DialogTitle sx={{ fontSize: '1rem', color: '#122E3E', px: 3, pt: 2, pb: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 'none' }}>
           Confirm Delete
           <IconButton size="small" onClick={() => setDeleteConfirmOpen(false)}>
-            <CloseIcon sx={{ fontSize: '1.1rem' }} />
+            <CloseIcon sx={{ fontSize: '1.1rem', color: '#122E3E' }} />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ fontSize: '0.875rem' }}>
+        <DialogContent sx={{ fontSize: '0.875rem', px: 3, pt: 2, pb: 1 }}>
           Are you sure you want to delete selected area?
         </DialogContent>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2, pt: 1 }}>
           <Button
             variant="contained"
             size="small"

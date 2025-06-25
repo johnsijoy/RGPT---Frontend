@@ -33,7 +33,6 @@ import ProjectSetupForm from './pages/project-setup/ProjectSetupForm';
 import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
-
 import WebsiteAreasDetails from './pages/setup/WebsiteAreas';
 import SlabRate from './pages/setup/Slabrate';
 import DocumentCentre from './pages/setup/DocumentCentre';
@@ -43,14 +42,13 @@ import VirtualNumber from './pages/setup/VirtualNumber';
 import Countries from './pages/setup/Countries';
 import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
-
 import WebsiteStates from './pages/setup/WebsiteStates';
 import WebsiteCities from './pages/setup/WebsiteCities';
-
 import Areas from './pages/setup/areas'; 
 import Localities from './pages/setup/localities'; 
-
+// Admin Pages
 import UserManagement from './pages/admin/UserManagement';
+import Report from './pages/admin/general/Report';
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -73,8 +71,15 @@ const AppRoutes = () => {
       {/* Private Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
+        {/*Dashboard*/}
+        <Route path="/" element={<Dashboard />} />
+        
+<Route path="admin/usermanagement">
+  <Route index element={<UserManagement />} />
+  <Route path="reports" element={<Report />} />
+</Route>
 
+  
           {/* Activities */}
           <Route path="activities">
             <Route index element={<ActivitiesList />} />
@@ -128,9 +133,6 @@ const AppRoutes = () => {
             <Route path="cities" element={<Cities />} />
             <Route path="areas" element={<Areas />} />
             <Route path="localities" element={<Localities />} />
-            
-
-            
           </Route>
         </Route>
       </Route>
@@ -140,10 +142,8 @@ const AppRoutes = () => {
         path="*"
         element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
-
-
-      <Route path="/admin/usermanagement" element={<UserManagement />} />
     </Routes>
-  );};
+  );
+};
 
 export default AppRoutes;
