@@ -51,7 +51,7 @@ import Localities from './pages/setup/localities';
 //Admin
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
-
+import SetupKeyValues from './pages/admin/SetupKeyValues';
 
 const PrivateRoute = () => {
   const { currentUser } = useAuth();
@@ -134,7 +134,7 @@ const AppRoutes = () => {
 
             {/* Admin */}
             <Route path="/admin/list-of-values" element={<ListOfValues />} />
-
+            <Route path="/admin/setup-key-values" element={<SetupKeyValues />} />
        
         </Route>
       </Route>
