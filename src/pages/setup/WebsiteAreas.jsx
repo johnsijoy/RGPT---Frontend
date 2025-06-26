@@ -46,7 +46,7 @@ const smallerInputSx = {
     paddingTop: '4px',
     paddingBottom: '4px',
     display: 'flex',
-    alignItems: 'center', // Vertically centers the text
+    alignItems: 'center', 
   },
   '& .MuiOutlinedInput-input': {
     padding: '4px 8px',
@@ -241,7 +241,6 @@ export default function WebsiteAreas() {
     return sortedData.slice(startIndex, startIndex + pageSize);
   }, [sortedData, page]);
 
-  // Toggle selection for a single item
   const handleCheckbox = (id) => {
     setSelectedIds((prev) => {
       if (prev.includes(id)) {
@@ -252,7 +251,6 @@ export default function WebsiteAreas() {
     });
   };
 
-  // Toggle selection for all items on the current page
   const handleSelectAll = (checked) => {
     if (checked) {
       const pageIds = paginatedData.map((item) => item.id);
@@ -262,8 +260,6 @@ export default function WebsiteAreas() {
     }
   };
 
-  // Modify enabled only when exactly 1 selected
-  // Delete enabled when >=1 selected
   const isModifyEnabled = selectedIds.length === 1;
   const isDeleteEnabled = selectedIds.length > 0;
 
@@ -315,7 +311,7 @@ export default function WebsiteAreas() {
   };
 
   const handleExport = () => {
-    // Map keys to column headers exactly as shown in table header
+    
     const headersMap = {
       masterArea: 'Master Area',
       name: 'Website Area Name',
@@ -448,10 +444,10 @@ export default function WebsiteAreas() {
     PaperProps: {
       sx: {
         maxHeight: 200,
-        // Only reduce font size and height of dropdown items here:
+        
         '& .MuiMenuItem-root': {
-          fontSize: '0.65rem',  // smaller font for options
-          minHeight: 28,        // smaller height for options
+          fontSize: '0.65rem',  
+          minHeight: 28,        
           paddingTop: '4px',
           paddingBottom: '4px',
         },
@@ -530,22 +526,26 @@ export default function WebsiteAreas() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    hover
-                    selected={selectedIds.includes(item.id)}
-                    onClick={() => handleCheckbox(item.id)}
-                    sx={{ cursor: 'pointer' }}
-                  >
-                    <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        size="small"
-                        checked={selectedIds.includes(item.id)}
-                        onChange={() => handleCheckbox(item.id)}
-                      />
-                    </TableCell>
+                          {paginatedData.length > 0 ? (
+                            paginatedData.map((item) => (
+                              <TableRow
+              key={item.id}
+              onClick={() => handleCheckbox(item.id)}
+              sx={{
+                cursor: 'pointer',
+                backgroundColor: 'inherit !important',
+                '&:hover': {
+                  backgroundColor: 'inherit !important', 
+                },
+              }}
+            >
+                                <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
+                                  <Checkbox
+                                    size="small"
+                                    checked={selectedIds.includes(item.id)}
+                                    onChange={() => handleCheckbox(item.id)}
+                                  />
+                                </TableCell>
                     <TableCell sx={{ fontSize: '0.75rem' }}>{item.masterArea}</TableCell>
                     <TableCell sx={{ fontSize: '0.75rem' }}>{item.name}</TableCell>
                     <TableCell sx={{ fontSize: '0.75rem' }}>{item.city}</TableCell>

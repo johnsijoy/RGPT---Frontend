@@ -17,25 +17,6 @@ import { useNavigate } from 'react-router-dom';
 import areas from '../../mock/areas';
 import Pagination from '../../components/common/Pagination';
 
-const floatingInputSx = {
-  '& label': {
-    fontSize: '0.75rem',
-    transform: 'translate(14px, 9px) scale(1)',
-    transition: 'all 0.2s ease',
-  },
-  '& label.Mui-focused, & label.MuiInputLabel-shrink': {
-    transform: 'translate(14px, -7px) scale(0.75) !important',
-    transformOrigin: 'top left',
-  },
-  '& .MuiOutlinedInput-root': {
-    fontSize: '0.75rem',
-    height: 36,
-    '& input': {
-      padding: '8.5px 14px',
-    },
-  },
-};
-
 const Breadcrumbs = () => {
   const navigate = useNavigate();
   return (
@@ -164,7 +145,11 @@ const Areas = () => {
             placeholder="Search..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { height: 28 }, input: { fontSize: '0.75rem', padding: '4px 8px' } }}
+            sx={{
+              minWidth: 160,
+              '& .MuiOutlinedInput-root': { height: 28 },
+              input: { fontSize: '0.75rem', padding: '4px 8px' }
+            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -250,7 +235,7 @@ const Areas = () => {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ px: 3, pt: 2, pb: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {['name', 'city', 'state', 'country'].map((field, index) => (
+          {['name', 'city', 'state', 'country'].map(field => (
             <TextField
               key={field}
               label={field.charAt(0).toUpperCase() + field.slice(1)}
@@ -258,7 +243,12 @@ const Areas = () => {
               size="small"
               value={formData[field]}
               onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-              sx={{ ...floatingInputSx, ...(index === 0 && { mt: 2 }) }}
+              InputLabelProps={{ shrink: true }}
+              sx={{
+                fontSize: '0.75rem',
+                '& .MuiInputBase-input': { fontSize: '0.75rem' },
+                '& .MuiInputLabel-root': { fontSize: '0.75rem' }
+              }}
             />
           ))}
         </DialogContent>

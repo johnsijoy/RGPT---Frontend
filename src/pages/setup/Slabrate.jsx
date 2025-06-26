@@ -272,6 +272,37 @@ const SlabRate = () => {
                     direction={sortConfig.key === key ? sortConfig.direction : 'asc'}
                     onClick={() => handleSort(key)}
                   >
+
+                    {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim()}{' '}
+                    {sortConfig.key === key ? (
+                      sortConfig.direction === 'asc' ? (
+                        <ArrowUpwardIcon fontSize="inherit" sx={{ color: '#fff' }} />
+                      ) : (
+                        <ArrowDownwardIcon fontSize="inherit" sx={{ color: '#fff' }} />
+                      )
+                    ) : (
+                      <ArrowDownwardIcon fontSize="inherit" sx={{ color: '#fff', opacity: 0.3 }} />
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((item) => (
+                  <TableRow
+  key={item.id}
+  onClick={() => handleCheckbox(item.id)}
+  sx={{
+    cursor: 'pointer',
+    backgroundColor: 'inherit !important',
+    '&:hover': {
+      backgroundColor: 'inherit !important', 
+    },
+  }}
+>
+                    <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
+
                     {{
                       type: 'Type',
                       slabStart: 'Slab Start',
@@ -295,6 +326,7 @@ const SlabRate = () => {
                 return (
                   <TableRow key={item.id}>
                     <TableCell padding="checkbox">
+
                       <Checkbox
                         size="small"
                         checked={isChecked}

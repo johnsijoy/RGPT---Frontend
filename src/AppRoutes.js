@@ -1,3 +1,5 @@
+// File: src/AppRoutes.jsx
+
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
@@ -33,7 +35,6 @@ import ProjectSetupForm from './pages/project-setup/ProjectSetupForm';
 import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
-
 import WebsiteAreasDetails from './pages/setup/WebsiteAreas';
 import SlabRate from './pages/setup/Slabrate';
 import DocumentCentre from './pages/setup/DocumentCentre';
@@ -45,17 +46,20 @@ import States from './pages/setup/States';
 import Cities from './pages/setup/Cities';
 import WebsiteStates from './pages/setup/WebsiteStates';
 import WebsiteCities from './pages/setup/WebsiteCities';
+
 import Areas from './pages/setup/areas';
 import Localities from './pages/setup/localities';
 
-// Admin
+
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
+import ListViewColumn from './pages/admin/ListViewColumn';
 
-import TaskScheduler from './pages/admin/TaskScheduler';
-import SetupKeyValues from './pages/admin/SetupKeyValues';
-import EmployeeLogs from './pages/admin/EmployeeLogs';
-import EntityIdRepository from './pages/admin/EntityIdRepository';
+import Areas from './pages/setup/areas'; 
+import Localities from './pages/setup/localities'; 
+// Admin Pages
+import UserManagement from './pages/admin/UserManagement';
+import Report from './pages/admin/general/Report';
 
 
 const PrivateRoute = () => {
@@ -69,8 +73,6 @@ const PublicRoute = () => {
 };
 
 const AppRoutes = () => {
-  const { currentUser } = useAuth();
-
   return (
     <Routes>
       {/* Public Routes */}
@@ -81,8 +83,15 @@ const AppRoutes = () => {
       {/* Private Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
+        {/*Dashboard*/}
+        <Route path="/" element={<Dashboard />} />
+        
+<Route path="admin/usermanagement">
+  <Route index element={<UserManagement />} />
+  <Route path="reports" element={<Report />} />
+</Route>
 
+  
           {/* Activities */}
           <Route path="activities">
             <Route index element={<ActivitiesList />} />
@@ -121,8 +130,6 @@ const AppRoutes = () => {
             <Route path=":id" element={<SetupDetails />} />
             <Route path="new" element={<SetupForm />} />
             <Route path="edit/:id" element={<SetupForm />} />
-
-            {/* Setup Subsections */}
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
             <Route path="website-states" element={<WebsiteStates />} />
             <Route path="website-cities" element={<WebsiteCities />} />
@@ -138,24 +145,21 @@ const AppRoutes = () => {
             <Route path="localities" element={<Localities />} />
           </Route>
 
-          <Route path="admin">
-            <Route path="/admin/list-of-values" element={<ListOfValues />} />
-              <Route path="/admin/entity-id-repository" element={<EntityIdRepository />} />
-            <Route path="task-schedule" element={<TaskScheduler />} />
-            <Route path="setup-key-values" element={<SetupKeyValues />} />
-            <Route path="employee-logs" element={<EmployeeLogs />} />
-          </Route>
+
+          {/* Admin */}
+          <Route path="admin/list-of-values" element={<ListOfValues />} />
+
         </Route>
-      </Route>
-      <Route path="admin">
-        <Route path="usermanagement" element={<UserManagement />} />
       </Route>
 
       {/* Catch-all route */}
       <Route
         path="*"
-        element={<Navigate to={currentUser ? '/' : '/login'} />}
+        element={<Navigate to={localStorage.getItem('user') ? '/' : '/login'} />}
       />
+
+      <Route path="/admin/usermanagement" element={<UserManagement />} />
+
     </Routes>
   );
 };
