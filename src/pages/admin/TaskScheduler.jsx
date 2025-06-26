@@ -346,20 +346,41 @@ const TaskScheduler = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1rem', fontWeight: 600 }}>
-          <WarningAmberIcon color="warning" /> Confirm Delete
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2">
-            Are you sure you want to delete {checkedIds.length} selected record(s)?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDeleteOpen(false)} sx={{ fontSize: '0.75rem' }}>Cancel</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained" sx={{ fontSize: '0.75rem' }}>Delete</Button>
-        </DialogActions>
-      </Dialog>
+     <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
+  <DialogTitle sx={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontSize: '1rem',
+    fontWeight: 600
+  }}>
+    Confirm Delete
+    <IconButton onClick={() => setConfirmDeleteOpen(false)} size="small">
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  </DialogTitle>
+  <DialogContent sx={{ fontSize: '0.875rem', mt: 1 }}>
+    Are you sure you want to delete selected task(s)?
+  </DialogContent>
+  <DialogActions sx={{ px: 3, pb: 2 }}>
+    <Button
+      onClick={confirmDelete}
+      variant="contained"
+      size="small"
+      sx={{
+        bgcolor: '#122E3E',
+        color: '#fff',
+        fontSize: '0.75rem',
+        padding: '4px 12px',
+        textTransform: 'none',
+        '&:hover': { bgcolor: '#0e1e2a' }
+      }}
+    >
+      Delete
+    </Button>
+  </DialogActions>
+</Dialog>
+
     </Box>
   );
 };
