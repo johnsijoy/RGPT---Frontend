@@ -266,21 +266,7 @@ const handleImportSubmit = () => {
     </FormControl>
 
 
-    {/* Import icon */}
-     <IconButton size="small" title="Import" onClick={() => setOpenImportDialog(true)} sx={{ color: 'grey' }}>
-     <UploadFileIcon fontSize="medium" />
-     </IconButton>
-
-  {/* Table view icon */}
-<IconButton
-  size="small"
-  title="Column Preferences"
-  sx={{ color: 'grey' }}
-  onClick={() => setColumnDialogOpen(true)}
->
-  <TableViewIcon />
-</IconButton>
-
+   
    
     {/* Import icon */}
      <IconButton size="small" title="Import" onClick={() => setOpenImportDialog(true)} sx={{ color: 'grey' }}>
@@ -747,12 +733,31 @@ const handleImportSubmit = () => {
 
   {/* Dialog Footer Buttons */}
   <DialogActions sx={{ justifyContent: 'flex-end', pr: 3, pb: 2 }}>
-    <Button size="small" variant="outlined" sx={{ bgcolor: '#122E3E', color: '#fff', textTransform: 'none' }} onClick={handleReset}>Reset</Button>
-   
+    <Button
+      size="small"
+      variant="outlined"
+      disabled 
+      sx={{
+        bgcolor: '#122E3E',
+        color: '#fff',
+        textTransform: 'none',
+        '&.Mui-disabled': { bgcolor: '#ccc', color: '#888' }
+      }}
+      onClick={handleReset}
+    >
+      Reset
+    </Button>
+  
     <Button
       size="small"
       variant="contained"
-      sx={{ bgcolor: '#122E3E', color: '#fff', textTransform: 'none' }}
+      disabled 
+      sx={{
+        bgcolor: '#122E3E',
+        color: '#fff',
+        textTransform: 'none',
+        '&.Mui-disabled': { bgcolor: '#ccc', color: '#888' }
+      }}
       onClick={handleSaveColumns}
     >
       Save

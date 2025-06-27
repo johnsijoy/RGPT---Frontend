@@ -36,7 +36,7 @@ import SetupList from './pages/setup/SetupList';
 import SetupDetails from './pages/setup/SetupDetails';
 import SetupForm from './pages/setup/SetupForm';
 import WebsiteAreasDetails from './pages/setup/WebsiteAreas';
-import SlabRate from './pages/setup/Slabrate';
+
 import DocumentCentre from './pages/setup/DocumentCentre';
 import Organisation from './pages/setup/Organisation';
 import WebsitePanel from './pages/setup/WebsitePanel';
@@ -47,18 +47,19 @@ import Cities from './pages/setup/Cities';
 import WebsiteStates from './pages/setup/WebsiteStates';
 import WebsiteCities from './pages/setup/WebsiteCities';
 
-import Areas from './pages/setup/areas';
-import Localities from './pages/setup/localities';
+
 
 
 import UserManagement from './pages/admin/UserManagement';
 import ListOfValues from './pages/admin/ListOfValues';
+import EntityIdRepository from './pages/admin/EntityIdRepository';
+import SMSOutbox from './pages/admin/SMSOutbox';
 import ListViewColumn from './pages/admin/ListViewColumn';
 
 import Areas from './pages/setup/areas'; 
 import Localities from './pages/setup/localities'; 
 // Admin Pages
-import UserManagement from './pages/admin/UserManagement';
+
 import Report from './pages/admin/general/Report';
 
 
@@ -133,7 +134,7 @@ const AppRoutes = () => {
             <Route path="website-areas" element={<WebsiteAreasDetails />} />
             <Route path="website-states" element={<WebsiteStates />} />
             <Route path="website-cities" element={<WebsiteCities />} />
-            <Route path="slab-rate" element={<SlabRate />} />
+          
             <Route path="document-centre" element={<DocumentCentre />} />
             <Route path="organisation" element={<Organisation />} />
             <Route path="website-panel" element={<WebsitePanel />} />
@@ -148,6 +149,8 @@ const AppRoutes = () => {
 
           {/* Admin */}
           <Route path="admin/list-of-values" element={<ListOfValues />} />
+          <Route path="admin/entity-id-repository" element={<EntityIdRepository />} />
+          <Route path="/admin/sms-outbox" element={<SMSOutbox />} />
 
         </Route>
       </Route>
