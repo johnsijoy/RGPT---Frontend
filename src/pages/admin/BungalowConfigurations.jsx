@@ -10,7 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import * as XLSX from 'xlsx';
-import listOfValues from '../../mock/listofvalues';
+import bungalowConfig from '../../mock/bungalowConfig'; 
 import Pagination from '../../components/common/Pagination';
 import Breadcrumbs from '../../components/common/Breadcrumbs';
 import TableViewIcon from '@mui/icons-material/TableView';
@@ -39,11 +39,11 @@ const smallerInputSx = {
   '& .MuiSelect-icon': { fontSize: '1.2rem', top: 'calc(50% - 0.6em)', right: '8px' },
 };
 
-const ListOfValues = () => {
-  const [data, setData] = useState(listOfValues);
+const BungalowConfigurations = () => {
+  const [data, setData] = useState(bungalowConfig);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [columnDialogOpen, setColumnDialogOpen] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState(['Type', 'Value', 'Display Value', 'Is Default?', 'Parent List Of Value ', 'Sequence', 'Depth']);
+  const [visibleColumns, setVisibleColumns] = useState(['Config Name', 'Bedrooms', 'Saleable Area', 'Project']);
   const [hiddenColumns, setHiddenColumns] = useState([]);
   const [selectedVisibleIndex, setSelectedVisibleIndex] = useState(null);
   const [selectedHiddenIndex, setSelectedHiddenIndex] = useState(null);
@@ -55,7 +55,7 @@ const ListOfValues = () => {
   const [dialogType, setDialogType] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' });
   const [formData, setFormData] = useState({
-    type: '', value: '', displayValue: '', isDefault: '', depth: '', parent: '', sequence: ''
+    configName: '', bedrooms: '', saleableArea: '', project: ''
   });
   const [openImportDialog, setOpenImportDialog] = useState(false);
   const [importType, setImportType] = useState('comma');
@@ -71,11 +71,26 @@ const ListOfValues = () => {
     }));
   };
 
-  const filtered = data.filter((row) =>
-    (row.type.toLowerCase().includes(search.toLowerCase()) ||
-      row.value.toLowerCase().includes(search.toLowerCase())) &&
-    (filterType === '' || row.type === filterType)
-  );
+  const columns = [
+    { key: 'configName', label: 'Config Name' },
+    { key: 'bedrooms', label: 'Bedrooms' },
+    { key: 'saleableArea', label: 'Saleable Area' },
+    { key: 'project', label: 'Project' }
+  ];
+
+
+ const filtered = bungalowConfig.filter((row) => {
+  const matchesSearch =
+    (row.configName || "").toLowerCase().includes(search.toLowerCase()) ||
+    (row.project || "").toLowerCase().includes(search.toLowerCase());
+
+  const matchesFilter = filterType ? row.project === filterType : true;
+
+  return matchesSearch && matchesFilter;
+});
+
+
+
 
   const sorted = [...filtered].sort((a, b) => {
     if (!sortConfig.key) return 0;
@@ -134,31 +149,8 @@ const moveToHidden = () => {
   }
 };
 
-// const handleExport = () => {
-//   const dataStr = JSON.stringify({ visibleColumns, hiddenColumns }, null, 2);
-//   const blob = new Blob([dataStr], { type: 'application/json' });
-//   const url = URL.createObjectURL(blob);
-//   const link = document.createElement('a');
-//   link.href = url;
-//   link.download = 'column-preferences.json';
-//   link.click();
-// };
-
-// const moveAllToVisible = () => {
-//   setVisibleColumns((prev) => [...prev, ...hiddenColumns]);
-//   setHiddenColumns([]);
-//   setSelectedHiddenIndex(null);
-// };
-
-// const moveAllToHidden = () => {
-//   setHiddenColumns((prev) => [...prev, ...visibleColumns]);
-//   setVisibleColumns([]);
-//   setSelectedVisibleIndex(null);
-// };
-
-
 const handleReset = () => {
-  setVisibleColumns(['Type', 'Value', 'Display Value', 'Is Default?', 'Depth']);
+  setVisibleColumns(['Config Name', 'Bedrooms', 'Saleable Area', 'Project']);
   setHiddenColumns([]);
 };
 
@@ -181,49 +173,21 @@ const handleImportSubmit = () => {
   setOpenImportDialog(false); 
 };
 
-
-
-  return (
+return (
     <Box sx={{ p: 3, backgroundColor: '#fff', borderRadius: 2 }}>
       <Breadcrumbs current="List Of Values" />
       {/*  Heading */} 
-      <Typography variant="h6" sx={{ mb: 2 }}>List Of Values</Typography>
+      <Typography variant="h6" sx={{ mb: 2 }}>Bungalow Configurations</Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', mb: 2, gap: 1 }}>
 
 
-        {/*  Modify | Delete | Batch Update */}
+      
+
+   {/*  Modify | Delete | Batch Update */}
        <Box sx={{ display: 'flex', gap: 1, padding: '4px 10px' }}>
-       <Button
-           variant="contained"
-           size="small"
-           onClick={() => handleDialogOpen('edit')}
-           disabled={checkedIds.length !== 1}
-           sx={{bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem',padding: '4px 10px', textTransform: 'none',
-             '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' }
-           }}
-         >
-           Modify
-         </Button>
-         <Button
-           variant="contained"
-           size="small"
-           onClick={() => setOpenDeleteDialog(true)}
-           disabled={checkedIds.length === 0}
-           sx={{
-             bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem',padding: '4px 10px', textTransform: 'none',
-             '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#888' }
-           }}
-         >
-            Delete
-         </Button>
-         <Button
-               variant="contained"
-               size="small"
-               sx={{ bgcolor: '#122E3E', fontSize: '0.75rem',padding: '3px 9px', textTransform: 'none' }}
-               disabled
-             >
-               Batch Update
-             </Button>
+       
+        
+        
           </Box>
 
             {/* Search | Select | Download | Create */}
@@ -251,19 +215,21 @@ const handleImportSubmit = () => {
            <Select
              value={filterType}
              label="Select a Query"
-             onChange={(e) => setFilterType(e.target.value)}
-        MenuProps={{
-          PaperProps: {
-            sx: { '& .MuiMenuItem-root': { fontSize: '0.75em' } }
-          }
-        }}
-      >
-        <MenuItem value=""><em>All Types</em></MenuItem>
-        {[...new Set(data.map((item) => item.type))].map((type) => (
-          <MenuItem key={type} value={type}>{type}</MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+              onChange={(e) => setFilterType(e.target.value)}
+    MenuProps={{
+      PaperProps: {
+        sx: { '& .MuiMenuItem-root': { fontSize: '0.75em' } }
+      }
+    }}
+  >
+    <MenuItem value=""><em>All Projects</em></MenuItem>
+    {[...new Set(data.map((item) => item.project))].map((project) => (
+      <MenuItem key={project} value={project}>
+        {project}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
 
 
    
@@ -291,34 +257,24 @@ const handleImportSubmit = () => {
   title="Export to Excel"
   onClick={() => {
     const rows = data.map(d => [
-      d.type, d.value, d.displayValue, d.isDefault || '', d.depth || '', d.parent || '', d.sequence || '',  d.created || '', d.createdBy || '', d.lastUpdatedBy || '', d.lastUpdated || ''
+      d.configName, d.bedrooms, d.saleableArea, d.project || '',  d.created || '', d.createdBy || '', d.lastUpdatedBy || '', d.lastUpdated || ''
     ]);
 
     const sheet = XLSX.utils.aoa_to_sheet([
-      ['Type','Value', 'Display Value', 'Is Default?', 'Depth', 'Parent List Of Value', 'Sequence', 'Created', 'Created By', 'Last Updated By', 'Last Updated'],
+      ['Config Name','Bedrooms', 'Saleable Area', 'Project', 'Created', 'Created By', 'Last Updated By', 'Last Updated'],
       ...rows
     ]);
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, sheet, 'ListOfValues');
-    XLSX.writeFile(wb, 'ListOfValues.xlsx');
+    XLSX.utils.book_append_sheet(wb, sheet, 'BungalowConfigurations');
+    XLSX.writeFile(wb, 'BungalowConfigurations.xlsx');
   }}
 >
     <DescriptionIcon fontSize="medium" />
 </IconButton>
 
 
-    {/* Create */}
-    <Button
-      variant="contained"
-      size="small"
-      onClick={() => handleDialogOpen('create')}
-      sx={{
-        bgcolor: '#122E3E', color: '#fff', fontSize: '0.75rem',
-        padding: '4px 10px', textTransform: 'none'
-      }}>
-      + Create
-    </Button>
+  
   </Box>
 </Box>
 
@@ -342,7 +298,7 @@ const handleImportSubmit = () => {
                   sx={{ color: '#fff' }}
                 />
               </TableCell>
-              {['type', 'value', 'displayValue', 'isDefault', 'depth', 'parent', 'sequence'].map((key) => (
+             {columns.map(({ key, label }) => (
                 <TableCell
                  key={key}
                  sx={{color: '#fff', fontSize: 13,'& .MuiTableSortLabel-root': {color: '#fff', },
@@ -353,7 +309,7 @@ const handleImportSubmit = () => {
     direction={sortConfig.key === key ? sortConfig.direction : 'asc'}
     onClick={() => handleSort(key)}
   >
-    {key.charAt(0).toUpperCase() + key.slice(1)}
+    {label}
   </TableSortLabel>
 </TableCell>
 
@@ -377,13 +333,10 @@ const handleImportSubmit = () => {
                       }
                     />
                   </TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.type}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.value}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.displayValue}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.isDefault}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.depth}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.parent}</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.sequence}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.configName}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.bedrooms}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.saleableArea}</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem' }}>{row.project}</TableCell>
                 </TableRow>
               ))
             ) : (
@@ -401,104 +354,6 @@ const handleImportSubmit = () => {
       />
     </Box>
     
-
-      {/* Dialog for Create/Edit */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-        <DialogTitle>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            {dialogType === 'edit' ? 'Edit Value' : 'Create Value'}
-            <IconButton size="small" onClick={() => setDialogOpen(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-  <TextField
-    label="Type"
-    fullWidth
-    margin="dense"
-    value={formData.type}
-    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-    sx={{
-      fontSize: '0.75rem',
-      '& .MuiInputBase-input': { fontSize: '0.75rem' },
-      '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-    }}
-  />
-  <TextField
-    label="Value"
-    fullWidth
-    value={formData.value}
-    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-    sx={{
-      fontSize: '0.75rem',
-      '& .MuiInputBase-input': { fontSize: '0.75rem' },
-      '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-    }}
-  />
-  <TextField
-    label="Display Value"
-    fullWidth
-    value={formData.displayValue}
-    onChange={(e) => setFormData({ ...formData, displayValue: e.target.value })}
-    sx={{
-      fontSize: '0.75rem',
-      '& .MuiInputBase-input': { fontSize: '0.75rem' },
-      '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-    }}
-  />
-  <TextField
-    label="Is Default"
-    fullWidth
-    value={formData.isDefault}
-    onChange={(e) => setFormData({ ...formData, isDefault: e.target.value })}
-    sx={{
-      fontSize: '0.75rem',
-      '& .MuiInputBase-input': { fontSize: '0.75rem' },
-      '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-    }}
-  />
-  <TextField
-    label="Depth"
-    fullWidth
-    value={formData.depth}
-    onChange={(e) => setFormData({ ...formData, depth: e.target.value })}
-    sx={{
-      fontSize: '0.75rem',
-      '& .MuiInputBase-input': { fontSize: '0.75rem' },
-      '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-    }}
-  />
-  <TextField
-    label="Parent"
-    fullWidth
-    value={formData.parent}
-    onChange={(e) => setFormData({ ...formData, parent: e.target.value })}
-    sx={{
-      fontSize: '0.75rem',
-      '& .MuiInputBase-input': { fontSize: '0.75rem' },
-      '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-    }}
-  />
-  <TextField
-    label="Sequence"
-    fullWidth
-    value={formData.sequence}
-    onChange={(e) => setFormData({ ...formData, sequence: e.target.value })}
-    sx={{
-      fontSize: '0.75rem',
-      '& .MuiInputBase-input': { fontSize: '0.75rem' },
-      '& .MuiInputLabel-root': { fontSize: '0.75rem' }
-    }}
-  />
-</DialogContent>
-
-        <DialogActions>
-          <Button variant="contained" sx={{ bgcolor: '#122E3E',fontSize: '0.75rem', padding: '3px 9px', color: '#fff' }} onClick={handleDialogSubmit}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
 
    
 
@@ -723,4 +578,5 @@ const handleImportSubmit = () => {
   );
 };
 
-export default ListOfValues;
+export default BungalowConfigurations;
+
