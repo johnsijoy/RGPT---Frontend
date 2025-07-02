@@ -56,6 +56,7 @@ import EntityIdRepository from './pages/admin/EntityIdRepository';
 import SMSOutbox from './pages/admin/SMSOutbox';
 import PortalIntegration from './pages/admin/PortalIntegration';
 import BungalowConfigurations from './pages/admin/BungalowConfigurations';
+import Employees from './pages/admin/Employees';
 import ListViewColumn from './pages/admin/ListViewColumn';
 
 import Areas from './pages/setup/areas'; 
@@ -155,6 +156,7 @@ const AppRoutes = () => {
           <Route path="/admin/sms-outbox" element={<SMSOutbox />} />
           <Route path="/admin/portal-integration" element={<PortalIntegration/>} />
           <Route path="/admin/bungalow-configurations" element={<BungalowConfigurations />} />
+          <Route path="/admin/employees" element={<Employees/>} />
 
 
         </Route>
