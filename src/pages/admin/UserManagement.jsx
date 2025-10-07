@@ -46,6 +46,11 @@ const groupedSections = [
   {
     title: 'Sales Master',
     items: ['Round Robin', 'Unit Configurations', 'Bungalow Configurations']
+  },
+
+  {
+    title: 'Property Management',
+    items: ['Property Details']
   }
 ];
 

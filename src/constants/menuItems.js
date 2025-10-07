@@ -23,7 +23,8 @@ import {
   TrendingUp as TrendingUpIcon,
   Map as SlabRateIcon,
   Web as WebsiteCityIcon,
-  TrackChanges as TargetLeadIcon
+  TrackChanges as TargetLeadIcon,
+    Article as BuyerLogsIcon,
 } from '@mui/icons-material';
 
 export const menuItems = [
@@ -81,6 +82,7 @@ export const menuItems = [
       { title: 'Website States', path: '/setup/website-states', icon: <StateIcon /> },
       { title: 'Website Areas', path: '/setup/website-areas', icon: <AreaIcon /> },
       { title: 'Slab Rate', path: '/setup/slab-rate', icon: <SlabRateIcon /> },
+       { title: 'BuyerLogs', path: '/setup/buyer-logs', icon: <BuyerLogsIcon /> },
     ],
   },
 ];

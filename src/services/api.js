@@ -1,30 +1,57 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api',
+  baseURL: process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000/api",
 });
 
-// Request interceptor
+// 🔹 Attach access token on every request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const access = localStorage.getItem("access");
+    if (access) {
+      config.headers.Authorization = `Bearer ${access}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor
+// 🔹 Handle 401 (access token expired) → refresh token automatically
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // Handle unauthorized access
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        const refresh = localStorage.getItem("refresh");
+        if (!refresh) throw new Error("No refresh token found");
+
+        const res = await axios.post(
+          `${process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000/api"}/token/refresh/`,
+          { refresh }
+        );
+
+        const newAccess = res.data.access;
+        localStorage.setItem("access", newAccess);
+
+        // Retry original request with new token
+        originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        window.location.href = "/login"; // redirect to login
+      }
     }
+
     return Promise.reject(error);
   }
 );
