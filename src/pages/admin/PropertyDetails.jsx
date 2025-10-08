@@ -94,66 +94,65 @@ const PropertyDetails = () => {
   };
 
   // 🟢 Initialize map
-  useEffect(() => {
-    if (mapRef.current) return;
+// 🟢 Initialize map & add features
+useEffect(() => {
+  if (mapRef.current) return;
 
-    const mapObj = new Map({
-      target: "map",
-      layers: [
-        new TileLayer({ source: new OSM() }),
-        new VectorLayer({ source: vectorSourceRef.current }),
-      ],
-      view: new View({
-        center: fromLonLat([78.9629, 20.5937]),
-        zoom: 5,
-      }),
-    });
+  // Create map
+  const mapObj = new Map({
+    target: "map",
+    layers: [
+      new TileLayer({ source: new OSM() }),
+      new VectorLayer({ source: vectorSourceRef.current }),
+    ],
+    view: new View({
+      center: fromLonLat([78.9629, 20.5937]), // default center India
+      zoom: 5,
+    }),
+  });
+  mapRef.current = mapObj;
 
-    mapRef.current = mapObj;
+  // Popup overlay
+  const popup = document.createElement("div");
+  popup.className = "ol-popup bg-white p-2 rounded shadow text-sm";
+  popup.style.position = "absolute";
+  popup.style.background = "#fff";
+  popup.style.padding = "5px 8px";
+  popup.style.border = "1px solid #333";
+  popup.style.borderRadius = "6px";
 
-    // Popup overlay
-    const popup = document.createElement("div");
-    popup.className = "ol-popup bg-white p-2 rounded shadow text-sm";
-    popup.style.position = "absolute";
-    popup.style.background = "#fff";
-    popup.style.padding = "5px 8px";
-    popup.style.border = "1px solid #333";
-    popup.style.borderRadius = "6px";
+  const overlay = new Overlay({
+    element: popup,
+    positioning: "bottom-center",
+    stopEvent: false,
+    offset: [0, -10],
+  });
+  mapObj.addOverlay(overlay);
 
-    const overlay = new Overlay({
-      element: popup,
-      positioning: "bottom-center",
-      stopEvent: false,
-      offset: [0, -10],
-    });
-    mapObj.addOverlay(overlay);
+  // Hover popup
+  mapObj.on("pointermove", (evt) => {
+    const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
+    if (feature) {
+      const props = feature.getProperties();
+      popup.innerHTML = `<b>${props.name}</b><br>Status: ${props.status}<br>₹${props.base_price || 0}`;
+      overlay.setPosition(evt.coordinate);
+      popup.style.display = "block";
+    } else {
+      popup.style.display = "none";
+    }
+  });
 
-    // Hover popup
-    mapObj.on("pointermove", (evt) => {
-      const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
-      if (feature) {
-        const props = feature.getProperties();
-        popup.innerHTML = `<b>${props.name}</b><br>Status: ${props.status}<br>₹${props.base_price}`;
-        overlay.setPosition(evt.coordinate);
-        popup.style.display = "block";
-      } else {
-        popup.style.display = "none";
+  // Click → navigate to project detail
+  mapObj.on("singleclick", (evt) => {
+    mapObj.forEachFeatureAtPixel(evt.pixel, (feature) => {
+      const projectId = feature.getId();
+      if (projectId) {
+        navigate(`/admin/project-detail/${projectId}`);
       }
     });
+  });
 
-    // Click → navigate to project detail
-  
-mapObj.on("singleclick", (evt) => {
-  const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
-  if (feature) {
-    const projectId = feature.getId();
-    if (projectId) navigate(`/admin/project-detail/${projectId}`);
-  }
-});
-
-  }, [navigate]);
-
-  // 🟢 Load property data
+  // Load property data
   const loadData = async () => {
     try {
       const res = await axios.get("https://rgpt-7.onrender.com/api/projects/");
@@ -172,25 +171,43 @@ mapObj.on("singleclick", (evt) => {
         }))
       );
 
-      const geoFeatures = data.map((item) => {
-        const feature = new GeoJSON().readFeature(
-          {
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [item.longitude, item.latitude] },
-            properties: item,
-          },
-          { featureProjection: "EPSG:3857" }
-        );
-        feature.setStyle(getFeatureStyle(item.status));
-        return feature;
-      });
+      // Add markers
+      const features = data
+        .map((item) => {
+          const lat = parseFloat(item.latitude);
+          const lon = parseFloat(item.longitude);
+          if (isNaN(lat) || isNaN(lon)) return null;
+
+          const feature = new GeoJSON().readFeature(
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [lon, lat] },
+              properties: item,
+            },
+            { featureProjection: "EPSG:3857" }
+          );
+
+          feature.setStyle(getFeatureStyle(item.status));
+          feature.setId(item.id); // needed for navigation
+          return feature;
+        })
+        .filter(Boolean);
 
       vectorSourceRef.current.clear();
-      vectorSourceRef.current.addFeatures(geoFeatures);
+      vectorSourceRef.current.addFeatures(features);
+
+      // Automatically fit map to all markers
+      if (features.length > 0) {
+        const extent = vectorSourceRef.current.getExtent();
+        mapObj.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
+      }
     } catch (err) {
-      console.error("Error loading data:", err);
+      console.error("Error loading property data:", err);
     }
   };
+
+  loadData();
+}, [navigate]);
 
   useEffect(() => {
     loadData();
