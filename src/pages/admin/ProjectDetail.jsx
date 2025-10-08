@@ -11,7 +11,7 @@ const ProjectDetail = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const res = await axios.get(`https://rgpt-backend-6.onrender.com/api/projects/${id}/`);
+        const res = await axios.get(`https://rgpt-13.onrender.com/api/projects/${id}/`);
         setProject(res.data);
       } catch (err) {
         console.error("Error fetching project:", err);

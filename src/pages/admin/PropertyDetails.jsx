@@ -165,7 +165,7 @@ const PropertyDetails = () => {
   // Load property data
   const loadData = async () => {
     try {
-      const res = await axios.get("https://rgpt-7.onrender.com/api/projects/");
+      const res = await axios.get("https://rgpt-13.onrender.com/api/projects/");
       const data = res.data.results || res.data || [];
 
       setProperties(
@@ -244,7 +244,7 @@ const PropertyDetails = () => {
       if (!token) return alert("❌ No access token found.");
 
       const res = await axios.post(
-        "https://rgpt-7.onrender.com/api/projects/",
+        "https://rgpt-13.onrender.com/api/projects/",
         newProject,
         {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
