@@ -32,6 +32,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Typography,
 } from "@mui/material";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import SearchIcon from "@mui/icons-material/Search";
@@ -54,7 +55,6 @@ const PropertyDetails = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const popupRef = useRef(null);
   const [popupContent, setPopupContent] = useState("");
-  const [selectedProject, setSelectedProject] = useState(null);
   const [open, setOpen] = useState(false);
 
   const [newProject, setNewProject] = useState({
@@ -78,74 +78,90 @@ const PropertyDetails = () => {
     created_by: "admin",
   });
 
-  // 🟢 Feature style
-  const featureStyle = useMemo(
-    () =>
-      new Style({
-        image: new CircleStyle({
-          radius: 8,
-          fill: new Fill({ color: "rgba(0, 0, 255, 0.6)" }),
-          stroke: new Stroke({ color: "#fff", width: 2 }),
-        }),
+  // 🟢 Style per status
+  const getFeatureStyle = (status) => {
+    let color = "blue";
+    if (status === "Sold") color = "red";
+    else if (status === "Under Contract") color = "orange";
+    else if (status === "Available") color = "green";
+
+    return new Style({
+      image: new CircleStyle({
+        radius: 8,
+        fill: new Fill({ color }),
+        stroke: new Stroke({ color: "#fff", width: 2 }),
       }),
-    []
-  );
+    });
+  };
 
   // 🟢 Initialize map
   useEffect(() => {
     if (mapRef.current) return;
 
-    const vectorLayer = new VectorLayer({
-      source: vectorSourceRef.current,
-      style: featureStyle,
-    });
-
-    mapRef.current = new Map({
+    const mapObj = new Map({
       target: "map",
-      layers: [new TileLayer({ source: new OSM() }), vectorLayer],
+      layers: [
+        new TileLayer({ source: new OSM() }),
+        new VectorLayer({ source: vectorSourceRef.current }),
+      ],
       view: new View({
-        center: fromLonLat([77.5946, 12.9716]),
-        zoom: 12,
+        center: fromLonLat([78.9629, 20.5937]), // Center on India
+        zoom: 5,
       }),
     });
 
+    mapRef.current = mapObj;
+
+    // Popup overlay
+    const popup = document.createElement("div");
+    popup.className = "ol-popup bg-white p-2 rounded shadow text-sm";
+    popup.style.position = "absolute";
+    popup.style.background = "#fff";
+    popup.style.padding = "5px 8px";
+    popup.style.border = "1px solid #333";
+    popup.style.borderRadius = "6px";
+
     const overlay = new Overlay({
-      element: popupRef.current,
+      element: popup,
       positioning: "bottom-center",
       stopEvent: false,
       offset: [0, -10],
     });
-    mapRef.current.addOverlay(overlay);
+    mapObj.addOverlay(overlay);
 
-    // Hover popup
-    mapRef.current.on("pointermove", (evt) => {
-      const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
+    // 🟢 Hover event — show popup
+    mapObj.on("pointermove", (evt) => {
+      const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
       if (feature) {
         const props = feature.getProperties();
-        setPopupContent(
-          `${props.name || props.location_name} - ${props.status}`
-        );
+        popup.innerHTML = `<b>${props.name}</b><br>Status: ${props.status}<br>₹${props.base_price}`;
         overlay.setPosition(evt.coordinate);
+        popup.style.display = "block";
       } else {
-        overlay.setPosition(undefined);
+        popup.style.display = "none";
       }
     });
 
-    // Click navigation
-    mapRef.current.on("singleclick", (evt) => {
-      const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
+    // 🟢 Click event — navigate based on status
+    mapObj.on("singleclick", (evt) => {
+      const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
       if (feature) {
-        const id = feature.get("id") || feature.getProperties().id;
-        navigate(`/admin/project-detail/${id}`);
+        const props = feature.getProperties();
+
+        if (props.status === "Available" || props.status === "Under Contract") {
+          navigate(`/payment/${props.id}`);
+        } else {
+          alert("❌ This property is not available for booking.");
+        }
       }
     });
-  }, [featureStyle, navigate]);
+  }, [navigate]);
 
   // 🟢 Load property data
   const loadData = async () => {
     try {
       const res = await axios.get("https://rgpt-7.onrender.com/api/projects/");
-      const data = res.data.results || [];
+      const data = res.data.results || res.data || [];
 
       setProperties(
         data.map((item) => ({
@@ -172,7 +188,7 @@ const PropertyDetails = () => {
           },
           { featureProjection: "EPSG:3857" }
         );
-        feature.setStyle(null);
+        feature.setStyle(getFeatureStyle(item.status));
         return feature;
       });
 
@@ -187,7 +203,7 @@ const PropertyDetails = () => {
     loadData();
   }, []);
 
-  // 🟢 Sorting function
+  // 🟢 Sorting
   const handleSort = (key) => {
     const isAsc = orderBy === key && order === "asc";
     const newOrder = isAsc ? "desc" : "asc";
@@ -202,15 +218,11 @@ const PropertyDetails = () => {
     setProperties(sorted);
   };
 
-  // 🟢 Filter + pagination logic
+  // 🟢 Filters + Pagination
   const filteredData = useMemo(() => {
     return properties.filter((p) => {
-      const matchesSearch = p.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter
-        ? p.status === statusFilter
-        : true;
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter ? p.status === statusFilter : true;
       return matchesSearch && matchesStatus;
     });
   }, [properties, searchQuery, statusFilter]);
@@ -220,7 +232,7 @@ const PropertyDetails = () => {
     return filteredData.slice(start, start + rowsPerPage);
   }, [filteredData, page, rowsPerPage]);
 
-  // 🟢 Create new project
+  // 🟢 Create Project
   const handleCreateProject = async () => {
     try {
       const token = localStorage.getItem("access");
@@ -228,52 +240,26 @@ const PropertyDetails = () => {
         alert("❌ No access token found. Please login first.");
         return;
       }
-      const res = await axios.post(
-        "https://rgpt-7.onrender.com/api/projects/",
-        newProject,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+
+      await axios.post("https://rgpt-7.onrender.com/api/projects/", newProject, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       alert("✅ Project created successfully!");
       setOpen(false);
-      setNewProject({
-        tenant_id: null,
-        name: "",
-        location: "",
-        latitude: "",
-        longitude: "",
-        boundary_coords: null,
-        rera_number: "",
-        project_type: "Residential",
-        launch_date: null,
-        possession_date: null,
-        status: "Available",
-        total_area: "",
-        total_units: 0,
-        base_price: "",
-        description: "",
-        amenities: null,
-        tax_details: null,
-        created_by: "admin",
-      });
-
-      await loadData();
+      loadData();
     } catch (err) {
-      console.error("Error creating project:", err.response?.data || err.message);
+      console.error("Error creating project:", err);
       alert("❌ Failed to create project.");
     }
   };
 
-  // 🟢 Excel download
+  // 🟢 Excel Download
   const handleDownload = () => {
-    const headers = [
-      ["ID", "Project Name", "Location", "Latitude", "Longitude", "Area Sq.Ft", "Price", "Status"],
-    ];
+    const headers = [["ID", "Project Name", "Location", "Latitude", "Longitude", "Area Sq.Ft", "Price", "Status"]];
     const rows = properties.map((p) => [
       p.id,
       p.name,
@@ -296,12 +282,7 @@ const PropertyDetails = () => {
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Breadcrumbs excludePaths={["setup"]} />
         <Box>
-          <IconButton
-            size="small"
-            sx={{ color: "green", mr: 1 }}
-            title="Export to Excel"
-            onClick={handleDownload}
-          >
+          <IconButton size="small" sx={{ color: "green", mr: 1 }} title="Export to Excel" onClick={handleDownload}>
             <DescriptionIcon fontSize="medium" />
           </IconButton>
           <Button
@@ -338,11 +319,7 @@ const PropertyDetails = () => {
               />
               <FormControl size="small" sx={{ width: 150 }}>
                 <InputLabel>Status</InputLabel>
-                <Select
-                  value={statusFilter}
-                  label="Status"
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
+                <Select value={statusFilter} label="Status" onChange={(e) => setStatusFilter(e.target.value)}>
                   <MenuItem value="">All</MenuItem>
                   <MenuItem value="Available">Available</MenuItem>
                   <MenuItem value="Sold">Sold</MenuItem>
@@ -356,25 +333,21 @@ const PropertyDetails = () => {
             <TableHead sx={{ background: "#122E3E" }}>
               <TableRow>
                 <TableCell sx={{ color: "#fff" }} />
-                {["ID", "Project Name", "Location", "Area Sq.Ft", "Price", "Status"].map(
-                  (head) => (
-                    <TableCell key={head} sx={{ color: "#fff" }}>
-                      <TableSortLabel
-                        active={orderBy === head.toLowerCase().replace(/\s+/g, "")}
-                        direction={order}
-                        onClick={() =>
-                          handleSort(head.toLowerCase().replace(/\s+/g, ""))
-                        }
-                        sx={{
-                          color: "#fff !important",
-                          "& .MuiTableSortLabel-icon": { color: "#fff !important" },
-                        }}
-                      >
-                        {head}
-                      </TableSortLabel>
-                    </TableCell>
-                  )
-                )}
+                {["ID", "Project Name", "Location", "Area Sq.Ft", "Price", "Status"].map((head) => (
+                  <TableCell key={head} sx={{ color: "#fff" }}>
+                    <TableSortLabel
+                      active={orderBy === head.toLowerCase().replace(/\s+/g, "")}
+                      direction={order}
+                      onClick={() => handleSort(head.toLowerCase().replace(/\s+/g, ""))}
+                      sx={{
+                        color: "#fff !important",
+                        "& .MuiTableSortLabel-icon": { color: "#fff !important" },
+                      }}
+                    >
+                      {head}
+                    </TableSortLabel>
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
 
@@ -387,10 +360,7 @@ const PropertyDetails = () => {
                       onChange={(e) => {
                         if (e.target.checked)
                           setSelectedRows([...selectedRows, prop.id]);
-                        else
-                          setSelectedRows(
-                            selectedRows.filter((id) => id !== prop.id)
-                          );
+                        else setSelectedRows(selectedRows.filter((id) => id !== prop.id));
                       }}
                     />
                   </TableCell>
@@ -430,21 +400,6 @@ const PropertyDetails = () => {
           }}
         >
           <div id="map" style={{ width: "100%", height: "100%" }} />
-          <div
-            ref={popupRef}
-            style={{
-              background: "#fff",
-              padding: "4px 8px",
-              borderRadius: "4px",
-              border: "1px solid #333",
-              position: "absolute",
-              bottom: 0,
-              transform: "translate(-50%, -100%)",
-              pointerEvents: "none",
-            }}
-          >
-            {popupContent}
-          </div>
         </Box>
       </Box>
 
