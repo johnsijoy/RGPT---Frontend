@@ -32,7 +32,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Typography,
 } from "@mui/material";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import SearchIcon from "@mui/icons-material/Search";
@@ -53,8 +52,8 @@ const PropertyDetails = () => {
   const [orderBy, setOrderBy] = useState("id");
   const [order, setOrder] = useState("asc");
   const [selectedRows, setSelectedRows] = useState([]);
-  const popupRef = useRef(null);
   const [popupContent, setPopupContent] = useState("");
+  const popupRef = useRef(null);
   const [open, setOpen] = useState(false);
 
   const [newProject, setNewProject] = useState({
@@ -105,7 +104,7 @@ const PropertyDetails = () => {
         new VectorLayer({ source: vectorSourceRef.current }),
       ],
       view: new View({
-        center: fromLonLat([78.9629, 20.5937]), // Center on India
+        center: fromLonLat([78.9629, 20.5937]),
         zoom: 5,
       }),
     });
@@ -129,7 +128,7 @@ const PropertyDetails = () => {
     });
     mapObj.addOverlay(overlay);
 
-    // 🟢 Hover event — show popup
+    // Hover popup
     mapObj.on("pointermove", (evt) => {
       const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
       if (feature) {
@@ -142,17 +141,12 @@ const PropertyDetails = () => {
       }
     });
 
-    // 🟢 Click event — navigate based on status
+    // Click → navigate to project detail
     mapObj.on("singleclick", (evt) => {
       const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
       if (feature) {
         const props = feature.getProperties();
-
-        if (props.status === "Available" || props.status === "Under Contract") {
-          navigate(`/payment/${props.id}`);
-        } else {
-          alert("❌ This property is not available for booking.");
-        }
+        navigate(`/projects/${props.id}`);
       }
     });
   }, [navigate]);
@@ -180,10 +174,7 @@ const PropertyDetails = () => {
         const feature = new GeoJSON().readFeature(
           {
             type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [item.longitude, item.latitude],
-            },
+            geometry: { type: "Point", coordinates: [item.longitude, item.latitude] },
             properties: item,
           },
           { featureProjection: "EPSG:3857" }
@@ -236,39 +227,101 @@ const PropertyDetails = () => {
   const handleCreateProject = async () => {
     try {
       const token = localStorage.getItem("access");
-      if (!token) {
-        alert("❌ No access token found. Please login first.");
-        return;
-      }
+      if (!token) return alert("❌ No access token found.");
 
-      await axios.post("https://rgpt-7.onrender.com/api/projects/", newProject, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const res = await axios.post(
+        "https://rgpt-7.onrender.com/api/projects/",
+        newProject,
+        {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        }
+      );
+
+      const createdProject = res.data;
+
+      // Add to state
+      setProperties((prev) => [
+        ...prev,
+        {
+          id: createdProject.id,
+          name: createdProject.name,
+          location_name: createdProject.location || "",
+          latitude: createdProject.latitude,
+          longitude: createdProject.longitude,
+          area_sq_ft: createdProject.total_area,
+          price: createdProject.base_price,
+          status: createdProject.status,
         },
-      });
+      ]);
+
+      // Add marker to map
+      const feature = new GeoJSON().readFeature(
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [createdProject.longitude, createdProject.latitude] },
+          properties: createdProject,
+        },
+        { featureProjection: "EPSG:3857" }
+      );
+      feature.setStyle(getFeatureStyle(createdProject.status));
+      vectorSourceRef.current.addFeature(feature);
 
       alert("✅ Project created successfully!");
       setOpen(false);
-      loadData();
+      setNewProject({
+        tenant_id: null,
+        name: "",
+        location: "",
+        latitude: "",
+        longitude: "",
+        boundary_coords: null,
+        rera_number: "",
+        project_type: "Residential",
+        launch_date: null,
+        possession_date: null,
+        status: "Available",
+        total_area: "",
+        total_units: 0,
+        base_price: "",
+        description: "",
+        amenities: null,
+        tax_details: null,
+        created_by: "admin",
+      });
     } catch (err) {
-      console.error("Error creating project:", err);
+      console.error(err);
       alert("❌ Failed to create project.");
     }
   };
 
-  // 🟢 Excel Download
+  // 🟢 Checkbox zoom
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (selectedRows.length === 1) {
+      const feature = vectorSourceRef.current
+        .getFeatures()
+        .find((f) => f.getProperties().id === selectedRows[0]);
+      if (feature) {
+        mapRef.current.getView().animate({
+          center: feature.getGeometry().getCoordinates(),
+          zoom: 15,
+          duration: 600,
+        });
+      }
+    } else {
+      mapRef.current.getView().animate({
+        center: fromLonLat([78.9629, 20.5937]),
+        zoom: 5,
+        duration: 600,
+      });
+    }
+  }, [selectedRows]);
+
+  // 🟢 Excel download
   const handleDownload = () => {
     const headers = [["ID", "Project Name", "Location", "Latitude", "Longitude", "Area Sq.Ft", "Price", "Status"]];
     const rows = properties.map((p) => [
-      p.id,
-      p.name,
-      p.location_name,
-      p.latitude,
-      p.longitude,
-      p.area_sq_ft,
-      p.price,
-      p.status,
+      p.id, p.name, p.location_name, p.latitude, p.longitude, p.area_sq_ft, p.price, p.status,
     ]);
     const worksheet = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
     const workbook = XLSX.utils.book_new();
@@ -390,15 +443,7 @@ const PropertyDetails = () => {
         </Box>
 
         {/* Map Section */}
-        <Box
-          sx={{
-            flex: 1,
-            height: "600px",
-            borderRadius: 2,
-            border: "1px solid #ccc",
-            position: "relative",
-          }}
-        >
+        <Box sx={{ flex: 1, height: "600px", borderRadius: 2, border: "1px solid #ccc", position: "relative" }}>
           <div id="map" style={{ width: "100%", height: "100%" }} />
         </Box>
       </Box>
@@ -407,69 +452,39 @@ const PropertyDetails = () => {
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
         <DialogTitle sx={{ bgcolor: "#122E3E", color: "#fff", position: "relative", pr: 5 }}>
           Create New Project
-          <IconButton
-            onClick={() => setOpen(false)}
-            size="small"
-            sx={{
-              position: "absolute",
-              right: 8,
-              top: 8,
-              color: "#fff",
-              "&:hover": { color: "#ffcccc" },
-            }}
-          >
+          <IconButton onClick={() => setOpen(false)} size="small"
+            sx={{ position: "absolute", right: 8, top: 8, color: "#fff", "&:hover": { color: "#ffcccc" } }}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-            <TextField
-              label="Project Name"
-              fullWidth
+            <TextField label="Project Name" fullWidth
               value={newProject.name}
-              onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-            />
-            <TextField
-              label="Location"
-              fullWidth
+              onChange={(e) => setNewProject({ ...newProject, name: e.target.value })} />
+            <TextField label="Location" fullWidth
               value={newProject.location}
-              onChange={(e) => setNewProject({ ...newProject, location: e.target.value })}
-            />
+              onChange={(e) => setNewProject({ ...newProject, location: e.target.value })} />
             <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                label="Latitude"
-                fullWidth
+              <TextField label="Latitude" fullWidth
                 value={newProject.latitude}
-                onChange={(e) => setNewProject({ ...newProject, latitude: e.target.value })}
-              />
-              <TextField
-                label="Longitude"
-                fullWidth
+                onChange={(e) => setNewProject({ ...newProject, latitude: e.target.value })} />
+              <TextField label="Longitude" fullWidth
                 value={newProject.longitude}
-                onChange={(e) => setNewProject({ ...newProject, longitude: e.target.value })}
-              />
+                onChange={(e) => setNewProject({ ...newProject, longitude: e.target.value })} />
             </Box>
             <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                label="Total Area (sq.ft)"
-                fullWidth
+              <TextField label="Total Area (sq.ft)" fullWidth
                 value={newProject.total_area}
-                onChange={(e) => setNewProject({ ...newProject, total_area: e.target.value })}
-              />
-              <TextField
-                label="Base Price"
-                fullWidth
+                onChange={(e) => setNewProject({ ...newProject, total_area: e.target.value })} />
+              <TextField label="Base Price" fullWidth
                 value={newProject.base_price}
-                onChange={(e) => setNewProject({ ...newProject, base_price: e.target.value })}
-              />
+                onChange={(e) => setNewProject({ ...newProject, base_price: e.target.value })} />
             </Box>
             <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                label="Total Units"
-                fullWidth
+              <TextField label="Total Units" fullWidth
                 value={newProject.total_units}
-                onChange={(e) => setNewProject({ ...newProject, total_units: e.target.value })}
-              />
+                onChange={(e) => setNewProject({ ...newProject, total_units: e.target.value })} />
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
                 <Select
@@ -483,20 +498,13 @@ const PropertyDetails = () => {
                 </Select>
               </FormControl>
             </Box>
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={3}
+            <TextField label="Description" fullWidth multiline rows={3}
               value={newProject.description}
-              onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-            />
+              onChange={(e) => setNewProject({ ...newProject, description: e.target.value })} />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCreateProject} variant="contained" sx={{ bgcolor: "#122E3E" }}>
-            Save
-          </Button>
+          <Button onClick={handleCreateProject} variant="contained" sx={{ bgcolor: "#122E3E" }}>Save</Button>
         </DialogActions>
       </Dialog>
     </Box>
