@@ -78,11 +78,11 @@ const PropertyDetails = () => {
   });
 
     // Memoized style
-  const featureStyle = useMemo(
+   const featureStyle = useMemo(
     () =>
       new Style({
         image: new CircleStyle({
-          radius: 8,
+          radius: 10,
           fill: new Fill({ color: "rgba(0, 0, 255, 0.6)" }),
           stroke: new Stroke({ color: "#fff", width: 2 }),
         }),
@@ -90,7 +90,7 @@ const PropertyDetails = () => {
     []
   );
 
-  // 🟢 Style per status
+  // Feature style based on status
   const getFeatureStyle = (status) => {
     let color = "blue";
     if (status === "Sold") color = "red";
@@ -106,27 +106,28 @@ const PropertyDetails = () => {
     });
   };
 
-  // 🟢 Initialize map
-// 🟢 Initialize map & add features
-useEffect(() => {
-  if (mapRef.current) return;
-   const vectorLayer = new VectorLayer({
+  // Initialize map
+  useEffect(() => {
+    if (mapRef.current) return; // Initialize only once
+
+    const vectorLayer = new VectorLayer({
       source: vectorSourceRef.current,
-      style: featureStyle,
+      style: (feature) => {
+        const status = feature.get("status");
+        return getFeatureStyle(status);
+      },
     });
 
-   mapRef.current = new Map({
+    mapRef.current = new Map({
       target: "map",
       layers: [new TileLayer({ source: new OSM() }), vectorLayer],
       view: new View({
         center: fromLonLat([77.5946, 12.9716]),
-        zoom: 12,
+        zoom: 5,
       }),
     });
 
-
-  // Popup overlay
-// Popup overlay
+    // Popup overlay
     const overlay = new Overlay({
       element: popupRef.current,
       positioning: "bottom-center",
@@ -135,31 +136,32 @@ useEffect(() => {
     });
     mapRef.current.addOverlay(overlay);
 
-  // Hover popup
-   // Show popup on hover
+    // Hover popup
     mapRef.current.on("pointermove", (evt) => {
       const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
       if (feature) {
         const props = feature.getProperties();
-        setPopupContent(
-          `${props.name || props.location_name} - ${props.status}`
-        );
+        setPopupContent(`${props.name || props.location} - ${props.status}`);
         overlay.setPosition(evt.coordinate);
       } else {
         overlay.setPosition(undefined);
       }
     });
- mapRef.current.on("singleclick", (evt) => {
-  const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
-  if (feature) {
-    const id = feature.get("id") || feature.getProperties().id;
-    navigate(`/admin/project-detail/${id}`);
-  }
-});
 
+    // Click to navigate
+    mapRef.current.on("singleclick", (evt) => {
+      const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
+      if (feature) {
+        const id = feature.get("id");
+        if (id) {
+          navigate(`/admin/project-detail/${id}`);
+          const coords = feature.getGeometry().getCoordinates();
+          mapRef.current.getView().animate({ center: coords, zoom: 16 });
+        }
+      }
+    });
+  }, [navigate]);
 
-
-  }, [featureStyle]);
   // Load property data
   const loadData = async () => {
     try {
@@ -180,7 +182,7 @@ useEffect(() => {
       );
 
 
-           const geoFeatures = data.map((item) => {
+          const geoFeatures = data.map((item) => {
         const feature = new GeoJSON().readFeature(
           {
             type: "Feature",
@@ -192,7 +194,8 @@ useEffect(() => {
           },
           { featureProjection: "EPSG:3857" }
         );
-        feature.setStyle(null); // hide by default
+        feature.set("id", item.id);
+        feature.setStyle(getFeatureStyle(item.status));
         return feature;
       });
 
@@ -203,34 +206,9 @@ useEffect(() => {
     }
   };
 
-
   useEffect(() => {
     loadData();
   }, []);
-
-  // 🟢 Sorting
- // Handle create dialog form changes
-  const handleInputChange = (e) => {
-    setNewProject({ ...newProject, [e.target.name]: e.target.value });
-  };
-
-  // Update feature visibility when checkboxes change
-  useEffect(() => {
-    if (!vectorSourceRef.current) return;
-
-    vectorSourceRef.current.getFeatures().forEach((feature) => {
-      const id = feature.get("id") || feature.getProperties().id;
-      if (selectedRows.includes(id)) {
-        feature.setStyle(featureStyle);
-
-        // Zoom/center on selected feature
-        const coords = feature.getGeometry().getCoordinates();
-        mapRef.current.getView().animate({ center: coords, zoom: 16 });
-      } else {
-        feature.setStyle(null);
-      }
-    });
-  }, [selectedRows, featureStyle]);
 
   // Sorting
   const handleSort = (property) => {
@@ -322,12 +300,13 @@ useEffect(() => {
   }
 };
   // 🟢 Checkbox zoom
-  useEffect(() => {
+    useEffect(() => {
     if (!mapRef.current) return;
+
     if (selectedRows.length === 1) {
       const feature = vectorSourceRef.current
         .getFeatures()
-        .find((f) => f.getProperties().id === selectedRows[0]);
+        .find((f) => f.get("id") === selectedRows[0]);
       if (feature) {
         mapRef.current.getView().animate({
           center: feature.getGeometry().getCoordinates(),
@@ -337,13 +316,21 @@ useEffect(() => {
       }
     } else {
       mapRef.current.getView().animate({
-        center: fromLonLat([78.9629, 20.5937]),
+        center: fromLonLat([77.5946, 12.9716]),
         zoom: 5,
         duration: 600,
       });
     }
-  }, [selectedRows]);
 
+    // Highlight selected features
+    vectorSourceRef.current.getFeatures().forEach((feature) => {
+      if (selectedRows.includes(feature.get("id"))) {
+        feature.setStyle(featureStyle);
+      } else {
+        feature.setStyle(getFeatureStyle(feature.get("status")));
+      }
+    });
+  }, [selectedRows, featureStyle]);
   // 🟢 Excel download
   const handleDownload = () => {
     const headers = [["ID", "Project Name", "Location", "Latitude", "Longitude", "Area Sq.Ft", "Price", "Status"]];
