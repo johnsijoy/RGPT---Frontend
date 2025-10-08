@@ -52,9 +52,9 @@ const PropertyDetails = () => {
   const [orderBy, setOrderBy] = useState("id");
   const [order, setOrder] = useState("asc");
   const [selectedRows, setSelectedRows] = useState([]);
-  const [popupContent, setPopupContent] = useState("");
   const popupRef = useRef(null);
-  const [open, setOpen] = useState(false);
+  const [popupContent, setPopupContent] = useState("");
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const [newProject, setNewProject] = useState({
     tenant_id: null,
@@ -77,6 +77,19 @@ const PropertyDetails = () => {
     created_by: "admin",
   });
 
+    // Memoized style
+  const featureStyle = useMemo(
+    () =>
+      new Style({
+        image: new CircleStyle({
+          radius: 8,
+          fill: new Fill({ color: "rgba(0, 0, 255, 0.6)" }),
+          stroke: new Stroke({ color: "#fff", width: 2 }),
+        }),
+      }),
+    []
+  );
+
   // 🟢 Style per status
   const getFeatureStyle = (status) => {
     let color = "blue";
@@ -97,61 +110,56 @@ const PropertyDetails = () => {
 // 🟢 Initialize map & add features
 useEffect(() => {
   if (mapRef.current) return;
+   const vectorLayer = new VectorLayer({
+      source: vectorSourceRef.current,
+      style: featureStyle,
+    });
 
-  // Create map
-  const mapObj = new Map({
-    target: "map",
-    layers: [
-      new TileLayer({ source: new OSM() }),
-      new VectorLayer({ source: vectorSourceRef.current }),
-    ],
-    view: new View({
-      center: fromLonLat([78.9629, 20.5937]), // default center India
-      zoom: 5,
-    }),
-  });
-  mapRef.current = mapObj;
+   mapRef.current = new Map({
+      target: "map",
+      layers: [new TileLayer({ source: new OSM() }), vectorLayer],
+      view: new View({
+        center: fromLonLat([77.5946, 12.9716]),
+        zoom: 12,
+      }),
+    });
+
 
   // Popup overlay
-  const popup = document.createElement("div");
-  popup.className = "ol-popup bg-white p-2 rounded shadow text-sm";
-  popup.style.position = "absolute";
-  popup.style.background = "#fff";
-  popup.style.padding = "5px 8px";
-  popup.style.border = "1px solid #333";
-  popup.style.borderRadius = "6px";
-
-  const overlay = new Overlay({
-    element: popup,
-    positioning: "bottom-center",
-    stopEvent: false,
-    offset: [0, -10],
-  });
-  mapObj.addOverlay(overlay);
+// Popup overlay
+    const overlay = new Overlay({
+      element: popupRef.current,
+      positioning: "bottom-center",
+      stopEvent: false,
+      offset: [0, -10],
+    });
+    mapRef.current.addOverlay(overlay);
 
   // Hover popup
-  mapObj.on("pointermove", (evt) => {
-    const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
-    if (feature) {
-      const props = feature.getProperties();
-      popup.innerHTML = `<b>${props.name}</b><br>Status: ${props.status}<br>₹${props.base_price || 0}`;
-      overlay.setPosition(evt.coordinate);
-      popup.style.display = "block";
-    } else {
-      popup.style.display = "none";
-    }
-  });
-
-  // Click → navigate to project detail
-  mapObj.on("singleclick", (evt) => {
-    mapObj.forEachFeatureAtPixel(evt.pixel, (feature) => {
-      const projectId = feature.getId();
-      if (projectId) {
-        navigate(`/admin/project-detail/${projectId}`);
+   // Show popup on hover
+    mapRef.current.on("pointermove", (evt) => {
+      const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
+      if (feature) {
+        const props = feature.getProperties();
+        setPopupContent(
+          `${props.name || props.location_name} - ${props.status}`
+        );
+        overlay.setPosition(evt.coordinate);
+      } else {
+        overlay.setPosition(undefined);
       }
     });
-  });
+ mapRef.current.on("singleclick", (evt) => {
+  const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
+  if (feature) {
+    const id = feature.get("id") || feature.getProperties().id;
+    navigate(`/admin/project-detail/${id}`);
+  }
+});
 
+
+
+  }, [featureStyle]);
   // Load property data
   const loadData = async () => {
     try {
@@ -171,77 +179,86 @@ useEffect(() => {
         }))
       );
 
-      // Add markers
-      const features = data
-        .map((item) => {
-          const lat = parseFloat(item.latitude);
-          const lon = parseFloat(item.longitude);
-          if (isNaN(lat) || isNaN(lon)) return null;
 
-          const feature = new GeoJSON().readFeature(
-            {
-              type: "Feature",
-              geometry: { type: "Point", coordinates: [lon, lat] },
-              properties: item,
+           const geoFeatures = data.map((item) => {
+        const feature = new GeoJSON().readFeature(
+          {
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [item.longitude, item.latitude],
             },
-            { featureProjection: "EPSG:3857" }
-          );
-
-          feature.setStyle(getFeatureStyle(item.status));
-          feature.setId(item.id); // needed for navigation
-          return feature;
-        })
-        .filter(Boolean);
+            properties: item,
+          },
+          { featureProjection: "EPSG:3857" }
+        );
+        feature.setStyle(null); // hide by default
+        return feature;
+      });
 
       vectorSourceRef.current.clear();
-      vectorSourceRef.current.addFeatures(features);
-
-      // Automatically fit map to all markers
-      if (features.length > 0) {
-        const extent = vectorSourceRef.current.getExtent();
-        mapObj.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 15 });
-      }
+      vectorSourceRef.current.addFeatures(geoFeatures);
     } catch (err) {
-      console.error("Error loading property data:", err);
+      console.error("Error loading data:", err);
     }
   };
 
-  loadData();
-}, [navigate]);
 
   useEffect(() => {
     loadData();
   }, []);
 
   // 🟢 Sorting
-  const handleSort = (key) => {
-    const isAsc = orderBy === key && order === "asc";
-    const newOrder = isAsc ? "desc" : "asc";
-    setOrder(newOrder);
-    setOrderBy(key);
-
-    const sorted = [...properties].sort((a, b) => {
-      if (a[key] < b[key]) return newOrder === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return newOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-    setProperties(sorted);
+ // Handle create dialog form changes
+  const handleInputChange = (e) => {
+    setNewProject({ ...newProject, [e.target.name]: e.target.value });
   };
 
-  // 🟢 Filters + Pagination
-  const filteredData = useMemo(() => {
-    return properties.filter((p) => {
-      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter ? p.status === statusFilter : true;
-      return matchesSearch && matchesStatus;
+  // Update feature visibility when checkboxes change
+  useEffect(() => {
+    if (!vectorSourceRef.current) return;
+
+    vectorSourceRef.current.getFeatures().forEach((feature) => {
+      const id = feature.get("id") || feature.getProperties().id;
+      if (selectedRows.includes(id)) {
+        feature.setStyle(featureStyle);
+
+        // Zoom/center on selected feature
+        const coords = feature.getGeometry().getCoordinates();
+        mapRef.current.getView().animate({ center: coords, zoom: 16 });
+      } else {
+        feature.setStyle(null);
+      }
     });
-  }, [properties, searchQuery, statusFilter]);
+  }, [selectedRows, featureStyle]);
 
-  const paginatedData = useMemo(() => {
-    const start = page * rowsPerPage;
-    return filteredData.slice(start, start + rowsPerPage);
-  }, [filteredData, page, rowsPerPage]);
+  // Sorting
+  const handleSort = (property) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
 
+  const sortedData = [...properties].sort((a, b) => {
+    if (orderBy === "price" || orderBy === "area_sq_ft") {
+      return order === "asc" ? a[orderBy] - b[orderBy] : b[orderBy] - a[orderBy];
+    }
+    return order === "asc"
+      ? (a[orderBy] + "").localeCompare(b[orderBy] + "")
+      : (b[orderBy] + "").localeCompare(a[orderBy] + "");
+  });
+
+  const filteredData = sortedData.filter(
+    (p) =>
+      (p.status?.toLowerCase().includes(statusFilter.toLowerCase()) ||
+        statusFilter === "") &&
+      (p.price + "").includes(searchQuery)
+  );
+
+  const paginatedData = filteredData.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
   // 🟢 Create Project
   const handleCreateProject = async () => {
     try {
@@ -255,35 +272,6 @@ useEffect(() => {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         }
       );
-
-      const createdProject = res.data;
-
-      // Add to state
-      setProperties((prev) => [
-        ...prev,
-        {
-          id: createdProject.id,
-          name: createdProject.name,
-          location_name: createdProject.location || "",
-          latitude: createdProject.latitude,
-          longitude: createdProject.longitude,
-          area_sq_ft: createdProject.total_area,
-          price: createdProject.base_price,
-          status: createdProject.status,
-        },
-      ]);
-
-      // Add marker to map
-      const feature = new GeoJSON().readFeature(
-        {
-          type: "Feature",
-          geometry: { type: "Point", coordinates: [createdProject.longitude, createdProject.latitude] },
-          properties: createdProject,
-        },
-        { featureProjection: "EPSG:3857" }
-      );
-      feature.setStyle(getFeatureStyle(createdProject.status));
-      vectorSourceRef.current.addFeature(feature);
 
       alert("✅ Project created successfully!");
       setOpen(false);
@@ -307,12 +295,32 @@ useEffect(() => {
         tax_details: null,
         created_by: "admin",
       });
-    } catch (err) {
-      console.error(err);
-      alert("❌ Failed to create project.");
-    }
-  };
+     await loadData(); // Refresh project list
+ // 🟢 Add new feature on map instantly
+    if (res?.data?.longitude && res?.data?.latitude) {
+      const feature = new GeoJSON().readFeature(
+        {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [res.data.longitude, res.data.latitude],
+          },
+          properties: res.data,
+        },
+        { featureProjection: "EPSG:3857" }
+      );
 
+      feature.setStyle(featureStyle);
+      vectorSourceRef.current.addFeature(feature);
+
+      const coords = fromLonLat([res.data.longitude, res.data.latitude]);
+      mapRef.current.getView().animate({ center: coords, zoom: 16 });
+    }
+  } catch (err) {
+    console.error("Error creating project:", err.response?.data || err.message);
+    alert(" Failed ");
+  }
+};
   // 🟢 Checkbox zoom
   useEffect(() => {
     if (!mapRef.current) return;
@@ -463,7 +471,22 @@ useEffect(() => {
 
         {/* Map Section */}
         <Box sx={{ flex: 1, height: "600px", borderRadius: 2, border: "1px solid #ccc", position: "relative" }}>
-          <div id="map" style={{ width: "100%", height: "100%" }} />
+          <div id="map" style={{ width: "100%", height: "100%" }}/>
+           <div
+            ref={popupRef}
+            style={{
+              background: "#fff",
+              padding: "4px 8px",
+              borderRadius: "4px",
+              border: "1px solid #333",
+              position: "absolute",
+              bottom: 0,
+              transform: "translate(-50%, -100%)",
+              pointerEvents: "none",
+            }}
+          >
+            {popupContent}
+          </div> 
         </Box>
       </Box>
 
@@ -504,15 +527,12 @@ useEffect(() => {
               <TextField label="Total Units" fullWidth
                 value={newProject.total_units}
                 onChange={(e) => setNewProject({ ...newProject, total_units: e.target.value })} />
-              <FormControl fullWidth>
+               <FormControl size="small" sx={{ width: 150 }}>
                 <InputLabel>Status</InputLabel>
-                <Select
-                  value={newProject.status}
-                  label="Status"
-                  onChange={(e) => setNewProject({ ...newProject, status: e.target.value })}
-                >
-                  <MenuItem value="Sold">Sold</MenuItem>
+                <Select value={statusFilter} label="Status" onChange={(e) => setStatusFilter(e.target.value)}>
+                  <MenuItem value="">All</MenuItem>
                   <MenuItem value="Available">Available</MenuItem>
+                  <MenuItem value="Sold">Sold</MenuItem>
                   <MenuItem value="Under Contract">Under Contract</MenuItem>
                 </Select>
               </FormControl>

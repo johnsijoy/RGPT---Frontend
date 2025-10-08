@@ -26,8 +26,8 @@ const ProjectDetail = () => {
   if (!project) return <Typography>Project not found</Typography>;
 
   const handlePayment = () => {
-    // Redirect to your payment page
-    window.location.href = "/payment";
+    // Redirect to payment page or trigger payment flow
+    window.location.href = `/payment/${project.id}`; 
   };
 
   return (
