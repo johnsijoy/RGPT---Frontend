@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       // 1. Request JWT tokens
-      const response = await api.post("/token/", {
+      const response = await api.post("https://rgpt-7.onrender.com/api/token/", {
         username, // Django expects "username"
         password,
       });
