@@ -142,13 +142,15 @@ const PropertyDetails = () => {
     });
 
     // Click → navigate to project detail
-    mapObj.on("singleclick", (evt) => {
-      const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
-      if (feature) {
-        const props = feature.getProperties();
-        navigate(`/projects/${props.id}`);
-      }
-    });
+  
+mapObj.on("singleclick", (evt) => {
+  const feature = mapObj.forEachFeatureAtPixel(evt.pixel, (f) => f);
+  if (feature) {
+    const projectId = feature.getId();
+    if (projectId) navigate(`/admin/project-detail/${projectId}`);
+  }
+});
+
   }, [navigate]);
 
   // 🟢 Load property data
