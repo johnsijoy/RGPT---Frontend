@@ -55,32 +55,30 @@ const PropertyDetails = () => {
   const popupRef = useRef(null);
   const [popupContent, setPopupContent] = useState("");
   const [selectedProject, setSelectedProject] = useState(null);
-
-
-   // Create Dialog State
   const [open, setOpen] = useState(false);
- const [newProject, setNewProject] = useState({
-  tenant_id: null,
-  name: "",
-  location: "",
-  latitude: "",
-  longitude: "",
-  boundary_coords: null,
-  rera_number: "",
-  project_type: "Residential",
-  launch_date: null,
-  possession_date: null,
-  status: "Available",
-  total_area: "",
-  total_units: 0,
-  base_price: "",
-  description: "",
-  amenities: null,
-  tax_details: null,
-  created_by: "admin", // or current username if available
-});
 
-  // Memoized style
+  const [newProject, setNewProject] = useState({
+    tenant_id: null,
+    name: "",
+    location: "",
+    latitude: "",
+    longitude: "",
+    boundary_coords: null,
+    rera_number: "",
+    project_type: "Residential",
+    launch_date: null,
+    possession_date: null,
+    status: "Available",
+    total_area: "",
+    total_units: 0,
+    base_price: "",
+    description: "",
+    amenities: null,
+    tax_details: null,
+    created_by: "admin",
+  });
+
+  // 🟢 Feature style
   const featureStyle = useMemo(
     () =>
       new Style({
@@ -93,7 +91,7 @@ const PropertyDetails = () => {
     []
   );
 
-  // Initialize map
+  // 🟢 Initialize map
   useEffect(() => {
     if (mapRef.current) return;
 
@@ -111,7 +109,6 @@ const PropertyDetails = () => {
       }),
     });
 
-    // Popup overlay
     const overlay = new Overlay({
       element: popupRef.current,
       positioning: "bottom-center",
@@ -120,7 +117,7 @@ const PropertyDetails = () => {
     });
     mapRef.current.addOverlay(overlay);
 
-    // Show popup on hover
+    // Hover popup
     mapRef.current.on("pointermove", (evt) => {
       const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
       if (feature) {
@@ -133,133 +130,146 @@ const PropertyDetails = () => {
         overlay.setPosition(undefined);
       }
     });
- mapRef.current.on("singleclick", (evt) => {
-  const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
-  if (feature) {
-    const id = feature.get("id") || feature.getProperties().id;
-    navigate(`/admin/project-detail/${id}`);
-  }
-});
 
-
-
-  }, [featureStyle]);
-
-// Replace all instances of "http://127.0.0.1:8000/api/projects/" 
-// with your deployed backend link "https://rgpt-7.onrender.com/api/projects/"
-
-const loadData = async () => {
-  try {
-    const res = await axios.get("https://rgpt-7.onrender.com/api/projects/");
-    const data = res.data.results || [];
-
-    setProperties(
-      data.map((item) => ({
-        id: item.id,
-        name: item.name,
-        location_name: item.location || "",
-        latitude: item.latitude,
-        longitude: item.longitude,
-        area_sq_ft: item.total_area,
-        price: item.base_price,
-        status: item.status,
-      }))
-    );
-
-    const geoFeatures = data.map((item) => {
-      const feature = new GeoJSON().readFeature(
-        {
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [item.longitude, item.latitude],
-          },
-          properties: item,
-        },
-        { featureProjection: "EPSG:3857" }
-      );
-      feature.setStyle(null);
-      return feature;
-    });
-
-    vectorSourceRef.current.clear();
-    vectorSourceRef.current.addFeatures(geoFeatures);
-  } catch (err) {
-    console.error("Error loading data:", err);
-  }
-};
-
-// Create project request
-const handleCreateProject = async () => {
-  try {
-    const token = localStorage.getItem("access");
-    if (!token) {
-      alert("❌ No access token found. Please login first.");
-      return;
-    }
-    const res = await axios.post(
-      "https://rgpt-7.onrender.com/api/projects/",
-      newProject,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+    // Click navigation
+    mapRef.current.on("singleclick", (evt) => {
+      const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
+      if (feature) {
+        const id = feature.get("id") || feature.getProperties().id;
+        navigate(`/admin/project-detail/${id}`);
       }
-    );
-
-    alert("✅ Project created successfully!");
-    setOpen(false);
-    setNewProject({
-      tenant_id: null,
-      name: "",
-      location: "",
-      latitude: "",
-      longitude: "",
-      boundary_coords: null,
-      rera_number: "",
-      project_type: "Residential",
-      launch_date: null,
-      possession_date: null,
-      status: "Available",
-      total_area: "",
-      total_units: 0,
-      base_price: "",
-      description: "",
-      amenities: null,
-      tax_details: null,
-      created_by: "admin",
     });
+  }, [featureStyle, navigate]);
 
-    await loadData();
+  // 🟢 Load property data
+  const loadData = async () => {
+    try {
+      const res = await axios.get("https://rgpt-7.onrender.com/api/projects/");
+      const data = res.data.results || [];
 
-    if (res?.data?.longitude && res?.data?.latitude) {
-      const feature = new GeoJSON().readFeature(
-        {
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [res.data.longitude, res.data.latitude],
-          },
-          properties: res.data,
-        },
-        { featureProjection: "EPSG:3857" }
+      setProperties(
+        data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          location_name: item.location || "",
+          latitude: item.latitude,
+          longitude: item.longitude,
+          area_sq_ft: item.total_area,
+          price: item.base_price,
+          status: item.status,
+        }))
       );
 
-      feature.setStyle(featureStyle);
-      vectorSourceRef.current.addFeature(feature);
+      const geoFeatures = data.map((item) => {
+        const feature = new GeoJSON().readFeature(
+          {
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [item.longitude, item.latitude],
+            },
+            properties: item,
+          },
+          { featureProjection: "EPSG:3857" }
+        );
+        feature.setStyle(null);
+        return feature;
+      });
 
-      const coords = fromLonLat([res.data.longitude, res.data.latitude]);
-      mapRef.current.getView().animate({ center: coords, zoom: 16 });
+      vectorSourceRef.current.clear();
+      vectorSourceRef.current.addFeatures(geoFeatures);
+    } catch (err) {
+      console.error("Error loading data:", err);
     }
-  } catch (err) {
-    console.error("Error creating project:", err.response?.data || err.message);
-    alert(" Failed ");
-  }
-};
+  };
 
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  // Excel download
+  // 🟢 Sorting function
+  const handleSort = (key) => {
+    const isAsc = orderBy === key && order === "asc";
+    const newOrder = isAsc ? "desc" : "asc";
+    setOrder(newOrder);
+    setOrderBy(key);
+
+    const sorted = [...properties].sort((a, b) => {
+      if (a[key] < b[key]) return newOrder === "asc" ? -1 : 1;
+      if (a[key] > b[key]) return newOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+    setProperties(sorted);
+  };
+
+  // 🟢 Filter + pagination logic
+  const filteredData = useMemo(() => {
+    return properties.filter((p) => {
+      const matchesSearch = p.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter
+        ? p.status === statusFilter
+        : true;
+      return matchesSearch && matchesStatus;
+    });
+  }, [properties, searchQuery, statusFilter]);
+
+  const paginatedData = useMemo(() => {
+    const start = page * rowsPerPage;
+    return filteredData.slice(start, start + rowsPerPage);
+  }, [filteredData, page, rowsPerPage]);
+
+  // 🟢 Create new project
+  const handleCreateProject = async () => {
+    try {
+      const token = localStorage.getItem("access");
+      if (!token) {
+        alert("❌ No access token found. Please login first.");
+        return;
+      }
+      const res = await axios.post(
+        "https://rgpt-7.onrender.com/api/projects/",
+        newProject,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      alert("✅ Project created successfully!");
+      setOpen(false);
+      setNewProject({
+        tenant_id: null,
+        name: "",
+        location: "",
+        latitude: "",
+        longitude: "",
+        boundary_coords: null,
+        rera_number: "",
+        project_type: "Residential",
+        launch_date: null,
+        possession_date: null,
+        status: "Available",
+        total_area: "",
+        total_units: 0,
+        base_price: "",
+        description: "",
+        amenities: null,
+        tax_details: null,
+        created_by: "admin",
+      });
+
+      await loadData();
+    } catch (err) {
+      console.error("Error creating project:", err.response?.data || err.message);
+      alert("❌ Failed to create project.");
+    }
+  };
+
+  // 🟢 Excel download
   const handleDownload = () => {
     const headers = [
       ["ID", "Project Name", "Location", "Latitude", "Longitude", "Area Sq.Ft", "Price", "Status"],
@@ -294,12 +304,11 @@ const handleCreateProject = async () => {
           >
             <DescriptionIcon fontSize="medium" />
           </IconButton>
-          {/* Create button can open your create dialog */}
           <Button
             variant="contained"
             size="small"
             sx={{ bgcolor: "#122E3E", color: "#fff", fontSize: "0.75rem" }}
-             onClick={() => setOpen(true)}
+            onClick={() => setOpen(true)}
           >
             + Create
           </Button>
@@ -308,8 +317,8 @@ const handleCreateProject = async () => {
 
       {/* Table + Map */}
       <Box sx={{ display: "flex", gap: 2 }}>
+        {/* Table Section */}
         <Box sx={{ flex: 1 }}>
-          {/* Filters */}
           <Toolbar sx={{ pl: 0, pr: 0, mb: 1 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <TextField
@@ -325,23 +334,20 @@ const handleCreateProject = async () => {
                       <SearchIcon fontSize="small" />
                     </InputAdornment>
                   ),
-                  sx: { fontSize: "0.75rem" },
                 }}
               />
               <FormControl size="small" sx={{ width: 150 }}>
-                <InputLabel sx={{ fontSize: "0.75rem" }}>Status</InputLabel>
-               <Select
-  value={newProject.status}
-  label="Status"
-  onChange={(e) =>
-    setNewProject({ ...newProject, status: e.target.value })
-  }
->
-  <MenuItem value="Available">Available</MenuItem>
-  <MenuItem value="Sold">Sold</MenuItem>
-  <MenuItem value="Under Contract">Under Contract</MenuItem>
-</Select>
-
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={statusFilter}
+                  label="Status"
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="Available">Available</MenuItem>
+                  <MenuItem value="Sold">Sold</MenuItem>
+                  <MenuItem value="Under Contract">Under Contract</MenuItem>
+                </Select>
               </FormControl>
             </Box>
           </Toolbar>
@@ -354,18 +360,14 @@ const handleCreateProject = async () => {
                   (head) => (
                     <TableCell key={head} sx={{ color: "#fff" }}>
                       <TableSortLabel
-                        active={
-                          orderBy === head.toLowerCase().replace(/\s+/g, "")
-                        }
+                        active={orderBy === head.toLowerCase().replace(/\s+/g, "")}
                         direction={order}
                         onClick={() =>
                           handleSort(head.toLowerCase().replace(/\s+/g, ""))
                         }
                         sx={{
                           color: "#fff !important",
-                          "& .MuiTableSortLabel-icon": {
-                            color: "#fff !important",
-                          },
+                          "& .MuiTableSortLabel-icon": { color: "#fff !important" },
                         }}
                       >
                         {head}
@@ -375,6 +377,7 @@ const handleCreateProject = async () => {
                 )}
               </TableRow>
             </TableHead>
+
             <TableBody>
               {paginatedData.map((prop) => (
                 <TableRow key={prop.id}>
@@ -392,7 +395,7 @@ const handleCreateProject = async () => {
                     />
                   </TableCell>
                   <TableCell>{prop.id}</TableCell>
-                  <TableCell>{prop.name}</TableCell> {/* Project Name */}
+                  <TableCell>{prop.name}</TableCell>
                   <TableCell>{prop.location_name}</TableCell>
                   <TableCell>{prop.area_sq_ft}</TableCell>
                   <TableCell>{prop.price}</TableCell>
@@ -402,23 +405,21 @@ const handleCreateProject = async () => {
             </TableBody>
           </Table>
 
-      <TablePagination
-  component="div"
-  count={filteredData.length}
-  page={page}
-  onPageChange={(e, newPage) => setPage(newPage)}
-  rowsPerPage={rowsPerPage}
-  onRowsPerPageChange={(e) => {
-    setRowsPerPage(parseInt(e.target.value, 10));
-    setPage(0);
-  }}
-  rowsPerPageOptions={[10, 25, 50, 100]} // must match MUI allowed values
-/>
-
-
+          <TablePagination
+            component="div"
+            count={filteredData.length}
+            page={page}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+          />
         </Box>
 
-        {/* Map */}
+        {/* Map Section */}
         <Box
           sx={{
             flex: 1,
@@ -445,140 +446,104 @@ const handleCreateProject = async () => {
             {popupContent}
           </div>
         </Box>
-        {/* Create Project Dialog */}
-{/* Create Project Dialog */}
-<Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-  <DialogTitle
-    sx={{
-      bgcolor: "#122E3E",
-      color: "#fff",
-      position: "relative", // Important for icon positioning
-      pr: 5, // Add space for the close icon
-    }}
-  >
-    Create New Project
-    <IconButton
-      onClick={() => setOpen(false)}
-      size="small"
-      sx={{
-        position: "absolute",
-        right: 8,
-        top: 8,
-        color: "#fff",
-        "&:hover": { color: "#ffcccc" },
-      }}
-    >
-      <CloseIcon />
-    </IconButton>
-  </DialogTitle>
-
-  <DialogContent dividers>
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-      <TextField
-        label="Project Name"
-        fullWidth
-        value={newProject.name}
-        onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-      />
-
-      <TextField
-        label="Location"
-        fullWidth
-        value={newProject.location}
-        onChange={(e) =>
-          setNewProject({ ...newProject, location: e.target.value })
-        }
-      />
-
-      <Box sx={{ display: "flex", gap: 2 }}>
-        <TextField
-          label="Latitude"
-          fullWidth
-          value={newProject.latitude}
-          onChange={(e) =>
-            setNewProject({ ...newProject, latitude: e.target.value })
-          }
-        />
-        <TextField
-          label="Longitude"
-          fullWidth
-          value={newProject.longitude}
-          onChange={(e) =>
-            setNewProject({ ...newProject, longitude: e.target.value })
-          }
-        />
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2 }}>
-        <TextField
-          label="Total Area (sq.ft)"
-          fullWidth
-          value={newProject.total_area}
-          onChange={(e) =>
-            setNewProject({ ...newProject, total_area: e.target.value })
-          }
-        />
-        <TextField
-          label="Base Price"
-          fullWidth
-          value={newProject.base_price}
-          onChange={(e) =>
-            setNewProject({ ...newProject, base_price: e.target.value })
-          }
-        />
-      </Box>
-
-      <Box sx={{ display: "flex", gap: 2 }}>
-        <TextField
-          label="Total Units"
-          fullWidth
-          value={newProject.total_units}
-          onChange={(e) =>
-            setNewProject({ ...newProject, total_units: e.target.value })
-          }
-        />
-        <FormControl fullWidth>
-          <InputLabel>Status</InputLabel>
-          <Select
-            value={newProject.status}
-            label="Status"
-            onChange={(e) =>
-              setNewProject({ ...newProject, status: e.target.value })
-            }
+      {/* Create Project Dialog */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle sx={{ bgcolor: "#122E3E", color: "#fff", position: "relative", pr: 5 }}>
+          Create New Project
+          <IconButton
+            onClick={() => setOpen(false)}
+            size="small"
+            sx={{
+              position: "absolute",
+              right: 8,
+              top: 8,
+              color: "#fff",
+              "&:hover": { color: "#ffcccc" },
+            }}
           >
-            <MenuItem value="Sold">Sold</MenuItem>
-            <MenuItem value="Available">Available</MenuItem>
-            <MenuItem value="Under Contract">Under-Contract</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
-      <TextField
-        label="Description"
-        fullWidth
-        multiline
-        rows={3}
-        value={newProject.description}
-        onChange={(e) =>
-          setNewProject({ ...newProject, description: e.target.value })
-        }
-      />
-    </Box>
-  </DialogContent>
-
-  <DialogActions>
-    <Button
-      onClick={handleCreateProject}
-      variant="contained"
-      sx={{ bgcolor: "#122E3E" }}
-    >
-      Save
-    </Button>
-  </DialogActions>
-</Dialog>
-
-    </Box>
-    
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <TextField
+              label="Project Name"
+              fullWidth
+              value={newProject.name}
+              onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+            />
+            <TextField
+              label="Location"
+              fullWidth
+              value={newProject.location}
+              onChange={(e) => setNewProject({ ...newProject, location: e.target.value })}
+            />
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                label="Latitude"
+                fullWidth
+                value={newProject.latitude}
+                onChange={(e) => setNewProject({ ...newProject, latitude: e.target.value })}
+              />
+              <TextField
+                label="Longitude"
+                fullWidth
+                value={newProject.longitude}
+                onChange={(e) => setNewProject({ ...newProject, longitude: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                label="Total Area (sq.ft)"
+                fullWidth
+                value={newProject.total_area}
+                onChange={(e) => setNewProject({ ...newProject, total_area: e.target.value })}
+              />
+              <TextField
+                label="Base Price"
+                fullWidth
+                value={newProject.base_price}
+                onChange={(e) => setNewProject({ ...newProject, base_price: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                label="Total Units"
+                fullWidth
+                value={newProject.total_units}
+                onChange={(e) => setNewProject({ ...newProject, total_units: e.target.value })}
+              />
+              <FormControl fullWidth>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={newProject.status}
+                  label="Status"
+                  onChange={(e) => setNewProject({ ...newProject, status: e.target.value })}
+                >
+                  <MenuItem value="Sold">Sold</MenuItem>
+                  <MenuItem value="Available">Available</MenuItem>
+                  <MenuItem value="Under Contract">Under Contract</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <TextField
+              label="Description"
+              fullWidth
+              multiline
+              rows={3}
+              value={newProject.description}
+              onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCreateProject} variant="contained" sx={{ bgcolor: "#122E3E" }}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
