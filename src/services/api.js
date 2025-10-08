@@ -1,7 +1,10 @@
+// File: src/services/api.js
 import axios from "axios";
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://rgpt-7.onrender.com/api";
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000/api",
+  baseURL: BASE_URL,
 });
 
 // 🔹 Attach access token on every request
@@ -33,12 +36,9 @@ api.interceptors.response.use(
         const refresh = localStorage.getItem("refresh");
         if (!refresh) throw new Error("No refresh token found");
 
-        const res = await axios.post(
-          `${process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000/api"}/token/refresh/`,
-          { refresh }
-        );
-
+        const res = await axios.post(`${BASE_URL}/token/refresh/`, { refresh });
         const newAccess = res.data.access;
+
         localStorage.setItem("access", newAccess);
 
         // Retry original request with new token

@@ -145,118 +145,64 @@ const PropertyDetails = () => {
 
   }, [featureStyle]);
 
-  // Load properties from backend
-  const loadData = async () => {
-    try {
-      const res = await axios.get("http://127.0.0.1:8000/api/projects/");
-      const data = res.data.results || [];
+// Replace all instances of "http://127.0.0.1:8000/api/projects/" 
+// with your deployed backend link "https://rgpt-7.onrender.com/api/projects/"
 
-      setProperties(
-        data.map((item) => ({
-          id: item.id,
-          name: item.name, // project/building name
-          location_name: item.location || "",
-          latitude: item.latitude,
-          longitude: item.longitude,
-          area_sq_ft: item.total_area,
-          price: item.base_price,
-          status: item.status,
-        }))
-      );
-
-      const geoFeatures = data.map((item) => {
-        const feature = new GeoJSON().readFeature(
-          {
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [item.longitude, item.latitude],
-            },
-            properties: item,
-          },
-          { featureProjection: "EPSG:3857" }
-        );
-        feature.setStyle(null); // hide by default
-        return feature;
-      });
-
-      vectorSourceRef.current.clear();
-      vectorSourceRef.current.addFeatures(geoFeatures);
-    } catch (err) {
-      console.error("Error loading data:", err);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  // Handle create dialog form changes
-  const handleInputChange = (e) => {
-    setNewProject({ ...newProject, [e.target.name]: e.target.value });
-  };
-
-  // Update feature visibility when checkboxes change
-  useEffect(() => {
-    if (!vectorSourceRef.current) return;
-
-    vectorSourceRef.current.getFeatures().forEach((feature) => {
-      const id = feature.get("id") || feature.getProperties().id;
-      if (selectedRows.includes(id)) {
-        feature.setStyle(featureStyle);
-
-        // Zoom/center on selected feature
-        const coords = feature.getGeometry().getCoordinates();
-        mapRef.current.getView().animate({ center: coords, zoom: 16 });
-      } else {
-        feature.setStyle(null);
-      }
-    });
-  }, [selectedRows, featureStyle]);
-
-  // Sorting
-  const handleSort = (property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
-  };
-
-  const sortedData = [...properties].sort((a, b) => {
-    if (orderBy === "price" || orderBy === "area_sq_ft") {
-      return order === "asc" ? a[orderBy] - b[orderBy] : b[orderBy] - a[orderBy];
-    }
-    return order === "asc"
-      ? (a[orderBy] + "").localeCompare(b[orderBy] + "")
-      : (b[orderBy] + "").localeCompare(a[orderBy] + "");
-  });
-
-  const filteredData = sortedData.filter(
-    (p) =>
-      (p.status?.toLowerCase().includes(statusFilter.toLowerCase()) ||
-        statusFilter === "") &&
-      (p.price + "").includes(searchQuery)
-  );
-
-  const paginatedData = filteredData.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
-
-   // Submit new project
-  const handleCreateProject = async () => {
+const loadData = async () => {
   try {
-    // get token if your backend uses JWT
+    const res = await axios.get("https://rgpt-7.onrender.com/api/projects/");
+    const data = res.data.results || [];
+
+    setProperties(
+      data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        location_name: item.location || "",
+        latitude: item.latitude,
+        longitude: item.longitude,
+        area_sq_ft: item.total_area,
+        price: item.base_price,
+        status: item.status,
+      }))
+    );
+
+    const geoFeatures = data.map((item) => {
+      const feature = new GeoJSON().readFeature(
+        {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [item.longitude, item.latitude],
+          },
+          properties: item,
+        },
+        { featureProjection: "EPSG:3857" }
+      );
+      feature.setStyle(null);
+      return feature;
+    });
+
+    vectorSourceRef.current.clear();
+    vectorSourceRef.current.addFeatures(geoFeatures);
+  } catch (err) {
+    console.error("Error loading data:", err);
+  }
+};
+
+// Create project request
+const handleCreateProject = async () => {
+  try {
     const token = localStorage.getItem("access");
-if (!token) {
+    if (!token) {
       alert("❌ No access token found. Please login first.");
       return;
     }
     const res = await axios.post(
-      "http://127.0.0.1:8000/api/projects/",
+      "https://rgpt-7.onrender.com/api/projects/",
       newProject,
       {
         headers: {
-          Authorization: `Bearer ${token}`, // if auth is required
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       }
@@ -285,8 +231,8 @@ if (!token) {
       created_by: "admin",
     });
 
-    await loadData(); // Refresh project list
- // 🟢 Add new feature on map instantly
+    await loadData();
+
     if (res?.data?.longitude && res?.data?.latitude) {
       const feature = new GeoJSON().readFeature(
         {
@@ -311,6 +257,7 @@ if (!token) {
     alert(" Failed ");
   }
 };
+
 
   // Excel download
   const handleDownload = () => {
