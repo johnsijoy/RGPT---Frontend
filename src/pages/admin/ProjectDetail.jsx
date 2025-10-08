@@ -73,7 +73,7 @@ const ProjectDetail = () => {
         }}
         onClick={handlePayment}
       >
-        Pay Now
+        Payment Now
       </Button>
     </Box>
   );
