@@ -1,10 +1,11 @@
 // File: src/services/api.js
 import axios from "axios";
 
+// ✅ Use environment variable, fallback to Render backend
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://rgpt-back.onrender.com/api";
 
 const api = axios.create({
-  baseURL: "https://rgpt-back.onrender.com/api",
+  baseURL: BASE_URL,
 });
 
 // 🔹 Attach access token on every request
@@ -19,7 +20,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 🔹 Handle 401 (access token expired) → refresh token automatically
+// 🔹 Handle 401 (token expired) → refresh token automatically
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -34,9 +35,9 @@ api.interceptors.response.use(
 
       try {
         const refresh = localStorage.getItem("refresh");
-        if (!refresh) throw new Error("No refresh token found");
+        if (!refresh) throw new Error("No refresh token");
 
-        const res = await axios.post(`${BASE_URL}/token/refresh/`, { refresh });
+        const res = await api.post("/token/refresh/", { refresh });
         const newAccess = res.data.access;
 
         localStorage.setItem("access", newAccess);
@@ -48,6 +49,7 @@ api.interceptors.response.use(
         console.error("Token refresh failed:", refreshError);
         localStorage.removeItem("access");
         localStorage.removeItem("refresh");
+        localStorage.removeItem("user");
         window.location.href = "/login"; // redirect to login
       }
     }

@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Load user + tokens from localStorage on app start
+  // Load user from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const access = localStorage.getItem("access");
@@ -18,30 +18,21 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // 🔹 Login using Django backend
   const login = async (username, password) => {
     try {
-      // 1. Request JWT tokens
-      const response = await api.post("https://rgpt-back.onrender.com/api/token/", {
-        username, // Django expects "username"
-        password,
-      });
-
+      // ✅ Request JWT tokens
+      const response = await api.post("/token/", { username, password });
       const { access, refresh } = response.data;
 
-      // 2. Save tokens
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
-      // 3. Optionally fetch user profile (adjust endpoint if needed)
+      // ✅ Fetch user profile (optional)
       let userInfo = { username };
       try {
         const profileRes = await api.get("/vusers/");
-        // Example: just take the first matching user
         const matched = profileRes.data.find((u) => u.login === username);
-        if (matched) {
-          userInfo = matched;
-        }
+        if (matched) userInfo = matched;
       } catch (err) {
         console.warn("⚠️ Could not fetch user profile, using fallback.");
       }
@@ -55,7 +46,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 🔹 Refresh token
   const refreshToken = async () => {
     try {
       const refresh = localStorage.getItem("refresh");
@@ -72,7 +62,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 🔹 Logout clears everything
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem("user");
@@ -89,5 +78,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// ✅ Hook for using AuthContext
 export const useAuth = () => useContext(AuthContext);
